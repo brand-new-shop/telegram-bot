@@ -10,15 +10,15 @@ from views import AcceptRulesView, MenuView, FAQView, RulesView
 __all__ = ('register_handlers',)
 
 
-async def on_rules(message: Message):
+async def on_rules(message: Message) -> None:
     await answer_views(message, RulesView())
 
 
-async def on_faq(message: Message):
+async def on_faq(message: Message) -> None:
     await answer_views(message, FAQView())
 
 
-async def on_accept_rules(message: Message, users_api_client: UsersAPIClient):
+async def on_accept_rules(message: Message, users_api_client: UsersAPIClient) -> None:
     try:
         user = await users_api_client.create(message.from_user.id, message.from_user.username)
     except exceptions.ServerAPIError:
@@ -26,7 +26,7 @@ async def on_accept_rules(message: Message, users_api_client: UsersAPIClient):
     await answer_views(message, MenuView())
 
 
-async def on_start(message: Message, users_api_client: UsersAPIClient):
+async def on_start(message: Message, users_api_client: UsersAPIClient) -> None:
     try:
         user = await users_api_client.get_by_telegram_id(message.from_user.id)
     except exceptions.UserNotFoundError:
@@ -41,3 +41,4 @@ def register_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.register_message_handler(on_start, CommandStart(), state='*')
     dispatcher.register_message_handler(on_accept_rules, Text('✅ Accept'), state='*')
     dispatcher.register_message_handler(on_faq, Text('ℹ️ FAQ'), state='*')
+    dispatcher.register_message_handler(on_rules, Text('📗 Rules'), state='*')
