@@ -35,7 +35,7 @@ class SupportRequest(BaseModel):
     created_at: datetime.datetime
     is_open: bool
     issue: str
-    answer: str
+    answer: str | None
     subject: SupportSubject
 
 

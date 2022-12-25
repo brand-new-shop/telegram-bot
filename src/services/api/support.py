@@ -58,7 +58,7 @@ class SupportAPIClient:
             response_json = response.json()
         except json.JSONDecodeError:
             raise exceptions.ServerAPIError('Unable to parse response JSON')
-        return models.SupportRequest.parse_obj(response_json())
+        return models.SupportRequest.parse_obj(response_json)
 
     async def get_requests_by_user_telegram_id(self, user_telegram_id: int) -> tuple[models.SupportRequestPreview, ...]:
         url = f'/support/requests/users/telegram-id/{user_telegram_id}/'

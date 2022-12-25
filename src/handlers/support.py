@@ -7,12 +7,29 @@ import exceptions
 import models
 from models import SupportRequestCreate
 from services.api import SupportAPIClient
-from shortcuts import answer_views
-from views import SupportMenuView, SupportRequestCreatedView, ChooseSubjectView, SupportRequestsListView
+from shortcuts import answer_views, edit_message_by_view
+from views import (
+    SupportMenuView,
+    SupportRequestCreatedView,
+    ChooseSubjectView,
+    SupportRequestsListView,
+    SupportRequestDetailView,
+)
 from states import NewSupportSubjectStates, NewSupportRequestStates
-from callback_data import ChooseSubjectCallbackData
+from callback_data import ChooseSubjectCallbackData, SupportRequestDetailCallbackData
 
 __all__ = ('register_handlers',)
+
+
+async def on_support_request_detail(
+        callback_query: CallbackQuery,
+        support_api_client: SupportAPIClient,
+        callback_data: models.SupportRequestDetailCallbackData,
+):
+    support_request = await support_api_client.get_request_by_id(callback_data['support_request_id'])
+    view = SupportRequestDetailView(support_request)
+    await edit_message_by_view(callback_query.message, view)
+    await callback_query.answer()
 
 
 async def on_my_support_requests_list(message: Message, support_api_client: SupportAPIClient):
@@ -82,6 +99,11 @@ async def on_support_menu(message: Message) -> None:
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
+    dispatcher.register_callback_query_handler(
+        on_support_request_detail,
+        SupportRequestDetailCallbackData().filter(),
+        state='*',
+    )
     dispatcher.register_message_handler(
         on_my_support_requests_list,
         Text('📓 My Support Requests'),
