@@ -1,18 +1,59 @@
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram.types import Message, ContentType
+from aiogram.types import Message, ContentType, CallbackQuery
 
 import exceptions
+import models
+from models import SupportRequestCreate
 from services.api import SupportAPIClient
 from shortcuts import answer_views
-from views import SupportMenuView
-from states import NewSupportSubjectStates
+from views import SupportMenuView, SupportRequestCreatedView, ChooseSubjectView
+from states import NewSupportSubjectStates, NewSupportRequestStates
+from callback_data import ChooseSubjectCallbackData
 
 __all__ = ('register_handlers',)
 
 
-async def on_new_support_subject_name_input(message: Message, support_api_client: SupportAPIClient, state: FSMContext):
+async def on_input_support_request_issue(
+        message: Message,
+        support_api_client: SupportAPIClient,
+        state: FSMContext,
+) -> None:
+    state_data = await state.get_data()
+    await state.finish()
+    subject_id = state_data['support_subject_id']
+    support_request_create_dto = SupportRequestCreate(
+        user_telegram_id=message.from_user.id,
+        issue=message.text,
+        subject_id=subject_id,
+    )
+    created_support_request = await support_api_client.create_request(support_request_create_dto)
+    await answer_views(message, SupportRequestCreatedView(created_support_request.id))
+
+
+async def on_choose_support_subject(
+        callback_query: CallbackQuery,
+        callback_data: models.ChooseSubjectCallbackData,
+        state: FSMContext,
+) -> None:
+    await state.update_data(support_subject_id=callback_data['support_subject_id'])
+    await NewSupportRequestStates.issue.set()
+    await callback_query.message.edit_text('📋 Describe your problem/question')
+    await callback_query.answer()
+
+
+async def on_new_support_request(message: Message, support_api_client: SupportAPIClient) -> None:
+    subjects = await support_api_client.get_subjects()
+    await NewSupportRequestStates.subject.set()
+    await answer_views(message, ChooseSubjectView(subjects))
+
+
+async def on_new_support_subject_name_input(
+        message: Message,
+        support_api_client: SupportAPIClient,
+        state: FSMContext,
+) -> None:
     if len(message.text) > 64:
         await message.reply('Too long name')
         return
@@ -36,9 +77,32 @@ async def on_support_menu(message: Message) -> None:
 
 def register_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.register_message_handler(
+        on_new_support_request,
+        Text('📋 New Support Request'),
+        state='*',
+    )
+    dispatcher.register_callback_query_handler(
+        on_choose_support_subject,
+        ChooseSubjectCallbackData().filter(),
+        state=NewSupportRequestStates.subject,
+    )
+    dispatcher.register_message_handler(
+        on_input_support_request_issue,
+        content_types=ContentType.TEXT,
+        state=NewSupportRequestStates.issue
+    )
+    dispatcher.register_message_handler(
         on_new_support_subject_name_input,
         content_types=ContentType.TEXT,
         state=NewSupportSubjectStates.name,
     )
-    dispatcher.register_message_handler(on_new_support_subject, Text('🆘 New Support Subject'), state='*')
-    dispatcher.register_message_handler(on_support_menu, Text('👨‍💻 Support'), state='*')
+    dispatcher.register_message_handler(
+        on_new_support_subject,
+        Text('🆘 New Support Subject'),
+        state='*',
+    )
+    dispatcher.register_message_handler(
+        on_support_menu,
+        Text('👨‍💻 Support'),
+        state='*',
+    )
