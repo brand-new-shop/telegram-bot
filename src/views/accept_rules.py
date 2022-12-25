@@ -1,9 +1,9 @@
 from views.base import View
 from keyboards import AcceptRulesMarkup
 
-__all__ = ('RulesView',)
+__all__ = ('AcceptRulesView',)
 
 
-class RulesView(View):
+class AcceptRulesView(View):
     text = 'Rules'
     reply_markup = AcceptRulesMarkup()

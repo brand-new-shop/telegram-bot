@@ -5,7 +5,7 @@ from aiogram.types import Message
 import exceptions
 from services.api.users import UsersAPIClient
 from shortcuts import answer_views
-from views import RulesView, MenuView, FAQView
+from views import AcceptRulesView, MenuView, FAQView
 
 __all__ = ('register_handlers',)
 
@@ -26,7 +26,7 @@ async def on_start(message: Message, users_api_client: UsersAPIClient):
     try:
         user = await users_api_client.get_by_telegram_id(message.from_user.id)
     except exceptions.UserNotFoundError:
-        await answer_views(message, RulesView())
+        await answer_views(message, AcceptRulesView())
         return
     except exceptions.ServerAPIError:
         pass
