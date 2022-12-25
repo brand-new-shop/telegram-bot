@@ -5,9 +5,13 @@ from aiogram.types import Message
 import exceptions
 from services.api.users import UsersAPIClient
 from shortcuts import answer_views
-from views import AcceptRulesView, MenuView, FAQView
+from views import AcceptRulesView, MenuView, FAQView, RulesView
 
 __all__ = ('register_handlers',)
+
+
+async def on_rules(message: Message):
+    await answer_views(message, RulesView())
 
 
 async def on_faq(message: Message):

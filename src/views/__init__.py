@@ -1,3 +1,4 @@
+from .accept_rules import *
 from .faq import *
 from .menu import *
-from .accept_rules import *
+from .rules import *
