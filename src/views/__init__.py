@@ -1,4 +1,5 @@
 from .accept_rules import *
+from .categories_list import *
 from .choose_subject import *
 from .faq import *
 from .menu import *

@@ -5,6 +5,7 @@ import models
 __all__ = (
     'ChooseSubjectCallbackData',
     'SupportRequestDetailCallbackData',
+    'CategoryDetailCallbackData',
 )
 
 
@@ -26,3 +27,13 @@ class SupportRequestDetailCallbackData(CallbackData):
     def parse(self, callback_data: str) -> models.SupportRequestDetailCallbackData:
         callback_data = super().parse(callback_data)
         return {'support_request_id': int(callback_data['support_request_id'])}
+
+
+class CategoryDetailCallbackData(CallbackData):
+
+    def __init__(self):
+        super().__init__('category-detail', 'category_id')
+
+    def parse(self, callback_data: str):
+        callback_data = super().parse(callback_data)
+        return callback_data

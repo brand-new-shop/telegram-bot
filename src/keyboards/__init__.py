@@ -1,3 +1,4 @@
+from .categories_list import *
 from .choose_subject import *
 from .menu import *
 from .remove_message import *
