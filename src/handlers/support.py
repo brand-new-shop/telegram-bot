@@ -8,11 +8,17 @@ import models
 from models import SupportRequestCreate
 from services.api import SupportAPIClient
 from shortcuts import answer_views
-from views import SupportMenuView, SupportRequestCreatedView, ChooseSubjectView
+from views import SupportMenuView, SupportRequestCreatedView, ChooseSubjectView, SupportRequestsListView
 from states import NewSupportSubjectStates, NewSupportRequestStates
 from callback_data import ChooseSubjectCallbackData
 
 __all__ = ('register_handlers',)
+
+
+async def on_my_support_requests_list(message: Message, support_api_client: SupportAPIClient):
+    support_requests = await support_api_client.get_requests_by_user_telegram_id(message.from_user.id)
+    view = SupportRequestsListView(support_requests)
+    await answer_views(message, view)
 
 
 async def on_input_support_request_issue(
@@ -76,6 +82,11 @@ async def on_support_menu(message: Message) -> None:
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
+    dispatcher.register_message_handler(
+        on_my_support_requests_list,
+        Text('📓 My Support Requests'),
+        state='*',
+    )
     dispatcher.register_message_handler(
         on_new_support_request,
         Text('📋 New Support Request'),

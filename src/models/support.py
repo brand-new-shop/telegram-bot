@@ -10,6 +10,7 @@ __all__ = (
     'SupportRequestPreview',
     'SupportRequestCreated',
     'ChooseSubjectCallbackData',
+    'SupportRequestDetailCallbackData',
 )
 
 
@@ -44,3 +45,7 @@ class SupportRequestCreated(BaseModel):
 
 class ChooseSubjectCallbackData(TypedDict):
     support_subject_id: int
+
+
+class SupportRequestDetailCallbackData(TypedDict):
+    support_request_id: int
