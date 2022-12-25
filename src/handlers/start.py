@@ -1,4 +1,5 @@
 from aiogram import Dispatcher
+from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import CommandStart, Text
 from aiogram.types import Message
 
@@ -26,7 +27,7 @@ async def on_accept_rules(message: Message, users_api_client: UsersAPIClient) ->
     await answer_views(message, MenuView())
 
 
-async def on_start(message: Message, users_api_client: UsersAPIClient) -> None:
+async def on_start(message: Message, users_api_client: UsersAPIClient, state: FSMContext) -> None:
     try:
         user = await users_api_client.get_by_telegram_id(message.from_user.id)
     except exceptions.UserNotFoundError:
@@ -34,6 +35,7 @@ async def on_start(message: Message, users_api_client: UsersAPIClient) -> None:
         return
     except exceptions.ServerAPIError:
         pass
+    await state.finish()
     await answer_views(message, MenuView())
 
 

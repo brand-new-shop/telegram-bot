@@ -8,3 +8,11 @@ class UserAlreadyExistsError(ServerAPIError):
 
 class UserNotFoundError(ServerAPIError):
     pass
+
+
+class SupportSubjectAlreadyExistsError(ServerAPIError):
+    pass
+
+
+class SupportSubjectNotFoundError(ServerAPIError):
+    pass
