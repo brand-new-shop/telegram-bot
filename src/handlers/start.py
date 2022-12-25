@@ -5,9 +5,13 @@ from aiogram.types import Message
 import exceptions
 from services.api.users import UsersAPIClient
 from shortcuts import answer_views
-from views import RulesView, MenuView
+from views import RulesView, MenuView, FAQView
 
 __all__ = ('register_handlers',)
+
+
+async def on_faq(message: Message):
+    await answer_views(message, FAQView())
 
 
 async def on_accept_rules(message: Message, users_api_client: UsersAPIClient):
@@ -32,3 +36,4 @@ async def on_start(message: Message, users_api_client: UsersAPIClient):
 def register_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.register_message_handler(on_start, CommandStart(), state='*')
     dispatcher.register_message_handler(on_accept_rules, Text('✅ Accept'), state='*')
+    dispatcher.register_message_handler(on_faq, Text('ℹ️ FAQ'), state='*')
