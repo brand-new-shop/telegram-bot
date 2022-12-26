@@ -22,5 +22,5 @@ class ProfileView(View):
             lines.append('➖➖➖➖➖➖➖➖➖➖')
             lines.append(f'📱 Last {len(self.__user_profile_dto.last_purchases)} purchases:')
             for purchase in self.__user_profile_dto.last_purchases:
-                lines.append(f'▫️ {purchase.product_name} | {purchase.quantity} pc(s) | ${purchase.price}')
+                lines.append(f'▫️ {purchase.product_name} | {purchase.quantity} pc(s) | ${purchase.total_price}')
         return '\n'.join(lines)

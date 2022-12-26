@@ -1,17 +1,11 @@
 from dataclasses import dataclass
 from decimal import Decimal
 
+from models.products import OrderPreview
+
 __all__ = (
-    'LastPurchaseDTO',
     'UserProfileDTO',
 )
-
-
-@dataclass(frozen=True, slots=True)
-class LastPurchaseDTO:
-    product_name: str
-    quantity: int
-    price: Decimal
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,4 +14,4 @@ class UserProfileDTO:
     username: str | None
     purchases_total_count: int
     purchases_total_price: Decimal
-    last_purchases: list[LastPurchaseDTO]
+    last_purchases: list[OrderPreview]

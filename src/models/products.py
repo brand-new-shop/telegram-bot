@@ -1,4 +1,5 @@
 import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel
 
@@ -8,6 +9,8 @@ __all__ = (
     'ProductPreview',
     'ChooseCategoryCallbackData',
     'ChooseProductCallbackData',
+    'OrderPreview',
+    'OrdersStatistics',
 )
 
 from typing_extensions import TypedDict
@@ -39,3 +42,16 @@ class ChooseCategoryCallbackData(TypedDict):
 
 class ChooseProductCallbackData(TypedDict):
     product_id: int
+
+
+class OrderPreview(BaseModel):
+    id: int
+    product_name: str
+    quantity: int
+    total_price: Decimal
+
+
+class OrdersStatistics(BaseModel):
+    user_telegram_id: int
+    orders_count: int
+    orders_total_price: Decimal
