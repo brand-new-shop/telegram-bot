@@ -1,4 +1,5 @@
 from .categories_list import *
+from .category_menu import *
 from .choose_subject import *
 from .menu import *
 from .remove_message import *

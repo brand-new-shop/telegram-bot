@@ -12,7 +12,7 @@ __all__ = ('CategoriesListView',)
 class CategoriesListView(View):
     text = '📂 All available categories'
 
-    def __init__(self, categories: Iterable[models.Category]):
+    def __init__(self, categories: Iterable[models.CategoryPreview]):
         self.__categories = categories
 
     def get_reply_markup(self) -> InlineKeyboardMarkup:

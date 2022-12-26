@@ -6,6 +6,7 @@ __all__ = (
     'ChooseSubjectCallbackData',
     'SupportRequestDetailCallbackData',
     'CategoryDetailCallbackData',
+    'ProductDetailCallbackData',
 )
 
 
@@ -34,6 +35,16 @@ class CategoryDetailCallbackData(CallbackData):
     def __init__(self):
         super().__init__('category-detail', 'category_id')
 
-    def parse(self, callback_data: str):
+    def parse(self, callback_data: str) -> models.ChooseCategoryCallbackData:
         callback_data = super().parse(callback_data)
-        return callback_data
+        return {'category_id': int(callback_data['category_id'])}
+
+
+class ProductDetailCallbackData(CallbackData):
+
+    def __init__(self):
+        super().__init__('product-detail', 'product_id')
+
+    def parse(self, callback_data: str) -> models.ChooseProductCallbackData:
+        callback_data = super().parse(callback_data)
+        return {'product_id': int(callback_data['product_id'])}
