@@ -7,7 +7,7 @@ from aiogram.types import ParseMode
 from handlers import register_handlers
 from config import Config
 from middlewares import DependencyInjectMiddleware
-from services.api import UsersAPIClient, SupportAPIClient, ProductsAPIClient
+from services.api import UsersAPIClient, SupportAPIClient, ProductsAPIClient, ShopInfoAPIClient
 
 
 def main():
@@ -20,11 +20,13 @@ def main():
     users_api_client = UsersAPIClient(config.server.base_url)
     support_api_client = SupportAPIClient(config.server.base_url)
     products_api_client = ProductsAPIClient(config.server.base_url)
+    shop_info_api_client = ShopInfoAPIClient(config.server.base_url)
 
     dependency_inject_middleware = DependencyInjectMiddleware(
         users_api_client=users_api_client,
         support_api_client=support_api_client,
         products_api_client=products_api_client,
+        shop_info_api_client=shop_info_api_client,
     )
 
     dispatcher.setup_middleware(dependency_inject_middleware)
