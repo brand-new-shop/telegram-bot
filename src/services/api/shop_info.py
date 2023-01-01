@@ -32,3 +32,6 @@ class ShopInfoAPIClient:
 
     async def get_rules_info(self) -> models.ShopInfo:
         return await self.__get_shop_info('rules')
+
+    async def get_support_rules_info(self) -> models.ShopInfo:
+        return await self.__get_shop_info('support_rules')
