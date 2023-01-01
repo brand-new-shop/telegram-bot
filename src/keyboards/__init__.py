@@ -1,3 +1,4 @@
+from .accept_support_rules import *
 from .categories_list import *
 from .category_menu import *
 from .choose_subject import *

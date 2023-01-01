@@ -6,7 +6,7 @@ from aiogram.types import Message, ContentType, CallbackQuery
 import exceptions
 import models
 from models import SupportRequestCreate
-from services.api import SupportAPIClient
+from services.api import SupportAPIClient, ShopInfoAPIClient
 from shortcuts import answer_views, edit_message_by_view
 from views import (
     SupportMenuView,
@@ -14,6 +14,7 @@ from views import (
     ChooseSubjectView,
     SupportRequestsListView,
     SupportRequestDetailView,
+    AcceptSupportRulesView,
 )
 from states import NewSupportSubjectStates, NewSupportRequestStates
 from callback_data import ChooseSubjectCallbackData, SupportRequestDetailCallbackData
@@ -94,11 +95,22 @@ async def on_new_support_subject(message: Message) -> None:
     await message.answer('🛟 Input support subject')
 
 
-async def on_support_menu(message: Message) -> None:
+async def on_support_rules_were_read(message: Message) -> None:
     await answer_views(message, SupportMenuView())
 
 
+async def on_support_menu(message: Message, shop_info_api_client: ShopInfoAPIClient) -> None:
+    support_rules = await shop_info_api_client.get_support_rules_info()
+    view = AcceptSupportRulesView(support_rules)
+    await answer_views(message, view)
+
+
 def register_handlers(dispatcher: Dispatcher) -> None:
+    dispatcher.register_message_handler(
+        on_support_rules_were_read,
+        Text('✅ I did'),
+        state='*',
+    )
     dispatcher.register_callback_query_handler(
         on_support_request_detail,
         SupportRequestDetailCallbackData().filter(),
