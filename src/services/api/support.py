@@ -14,17 +14,6 @@ class SupportAPIClient:
     def __init__(self, base_url: str):
         self.__base_url = base_url
 
-    async def create_subject(self, name: str) -> models.SupportSubject:
-        async with httpx.AsyncClient(base_url=self.__base_url) as client:
-            response = await client.post('/support/', json={'name': name})
-        if response.status_code != 201:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
-        return models.SupportSubject.parse_obj(response_json)
-
     async def get_subjects(self) -> tuple[models.SupportSubject, ...]:
         async with httpx.AsyncClient(base_url=self.__base_url) as client:
             response = await client.get('/support/')

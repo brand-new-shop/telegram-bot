@@ -16,7 +16,7 @@ from views import (
     SupportRequestDetailView,
     AcceptSupportRulesView,
 )
-from states import NewSupportSubjectStates, NewSupportRequestStates
+from states import NewSupportRequestStates
 from callback_data import ChooseSubjectCallbackData, SupportRequestDetailCallbackData
 
 __all__ = ('register_handlers',)
@@ -73,28 +73,6 @@ async def on_new_support_request(message: Message, support_api_client: SupportAP
     await answer_views(message, ChooseSubjectView(subjects))
 
 
-async def on_new_support_subject_name_input(
-        message: Message,
-        support_api_client: SupportAPIClient,
-        state: FSMContext,
-) -> None:
-    if len(message.text) > 64:
-        await message.reply('Too long name')
-        return
-    try:
-        await support_api_client.create_subject(message.text)
-    except exceptions.ServerAPIError:
-        await message.reply('❌ Could not create new support subject')
-        return
-    await state.finish()
-    await message.answer('✅ Ready')
-
-
-async def on_new_support_subject(message: Message) -> None:
-    await NewSupportSubjectStates.name.set()
-    await message.answer('🛟 Input support subject')
-
-
 async def on_support_rules_were_read(message: Message) -> None:
     await answer_views(message, SupportMenuView())
 
@@ -135,16 +113,6 @@ def register_handlers(dispatcher: Dispatcher) -> None:
         on_input_support_request_issue,
         content_types=ContentType.TEXT,
         state=NewSupportRequestStates.issue
-    )
-    dispatcher.register_message_handler(
-        on_new_support_subject_name_input,
-        content_types=ContentType.TEXT,
-        state=NewSupportSubjectStates.name,
-    )
-    dispatcher.register_message_handler(
-        on_new_support_subject,
-        Text('🆘 New Support Subject'),
-        state='*',
     )
     dispatcher.register_message_handler(
         on_support_menu,
