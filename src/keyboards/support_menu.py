@@ -10,9 +10,10 @@ class SupportMenuMarkup(ReplyKeyboardMarkup):
             resize_keyboard=True,
             keyboard=[
                 [
-                    KeyboardButton('📋 New Support Request'),
-                    KeyboardButton('📓 My Support Requests'),
-                    KeyboardButton('🆘 New Support Subject'),
+                    KeyboardButton('📋 Submit New Ticket'),
+                ],
+                [
+                    KeyboardButton('📓 Tickets'),
                 ],
                 [
                     KeyboardButton('⬅️ Back'),

@@ -118,12 +118,12 @@ def register_handlers(dispatcher: Dispatcher) -> None:
     )
     dispatcher.register_message_handler(
         on_my_support_requests_list,
-        Text('📓 My Support Requests'),
+        Text('📓 Tickets'),
         state='*',
     )
     dispatcher.register_message_handler(
         on_new_support_request,
-        Text('📋 New Support Request'),
+        Text('📋 Submit New Ticket'),
         state='*',
     )
     dispatcher.register_callback_query_handler(
