@@ -5,10 +5,10 @@ from pydantic import BaseModel
 
 __all__ = (
     'SupportTicketCreate',
-    'SupportRequest',
+    'SupportTicket',
     'SupportTicketPreview',
     'SupportTicketCreated',
-    'SupportRequestDetailCallbackData',
+    'SupportTicketDetailCallbackData',
 )
 
 
@@ -24,18 +24,18 @@ class SupportTicketPreview(BaseModel):
     status: str
 
 
-class SupportRequest(BaseModel):
+class SupportTicket(BaseModel):
     id: int
     created_at: datetime.datetime
-    is_open: bool
     issue: str
     answer: str | None
     subject: str
+    status: str
 
 
 class SupportTicketCreated(BaseModel):
     id: int
 
 
-class SupportRequestDetailCallbackData(TypedDict):
-    support_request_id: int
+class SupportTicketDetailCallbackData(TypedDict):
+    ticket_id: int
