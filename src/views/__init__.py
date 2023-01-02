@@ -2,13 +2,13 @@ from .accept_rules import *
 from .accept_support_rules import *
 from .categories_list import *
 from .category_menu import *
-from .choose_subject import *
 from .menu import *
 from .product_detail import *
 from .profile import *
 from .shop_info import *
 from .support_menu import *
-from .support_request_created import *
+from .support_ticket import *
 from .support_request_detail import *
 from .support_requests_list import *
+from .support_ticket import *
 from .user_balance import *
