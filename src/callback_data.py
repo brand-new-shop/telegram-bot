@@ -3,20 +3,20 @@ from aiogram.utils.callback_data import CallbackData
 import models
 
 __all__ = (
-    'SupportRequestDetailCallbackData',
+    'SupportTicketDetailCallbackData',
     'CategoryDetailCallbackData',
     'ProductDetailCallbackData',
 )
 
 
-class SupportRequestDetailCallbackData(CallbackData):
+class SupportTicketDetailCallbackData(CallbackData):
 
     def __init__(self):
-        super().__init__('support-request-detail', 'support_request_id')
+        super().__init__('support-ticket-detail', 'ticket_id')
 
-    def parse(self, callback_data: str) -> models.SupportRequestDetailCallbackData:
+    def parse(self, callback_data: str) -> models.SupportTicketDetailCallbackData:
         callback_data = super().parse(callback_data)
-        return {'support_request_id': int(callback_data['support_request_id'])}
+        return {'ticket_id': int(callback_data['ticket_id'])}
 
 
 class CategoryDetailCallbackData(CallbackData):

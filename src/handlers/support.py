@@ -4,7 +4,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, ContentType, CallbackQuery
 
 import models
-from callback_data import SupportRequestDetailCallbackData
+from callback_data import SupportTicketDetailCallbackData
 from filters import MessageLengthFilter
 from services.api import SupportAPIClient, ShopInfoAPIClient
 from shortcuts import answer_views, edit_message_by_view
@@ -13,7 +13,7 @@ from views import (
     SupportMenuView,
     SupportTicketCreatedView,
     RequireTicketIssueView,
-    SupportRequestsListView,
+    SupportTicketsListView,
     SupportRequestDetailView,
     AcceptSupportRulesView,
     RequireTicketSubjectView,
@@ -34,9 +34,9 @@ async def on_support_ticket_subject_length_too_long(message: Message) -> None:
 async def on_support_request_detail(
         callback_query: CallbackQuery,
         support_api_client: SupportAPIClient,
-        callback_data: models.SupportRequestDetailCallbackData,
+        callback_data: models.SupportTicketDetailCallbackData,
 ):
-    support_request = await support_api_client.get_ticket_by_id(callback_data['support_request_id'])
+    support_request = await support_api_client.get_ticket_by_id(callback_data['ticket_id'])
     view = SupportRequestDetailView(support_request)
     await edit_message_by_view(callback_query.message, view)
     await callback_query.answer()
@@ -44,7 +44,7 @@ async def on_support_request_detail(
 
 async def on_my_support_requests_list(message: Message, support_api_client: SupportAPIClient):
     support_requests = await support_api_client.get_user_tickets(message.from_user.id)
-    view = SupportRequestsListView(support_requests)
+    view = SupportTicketsListView(support_requests)
     await answer_views(message, view)
 
 
@@ -105,7 +105,7 @@ def register_handlers(dispatcher: Dispatcher) -> None:
     )
     dispatcher.register_callback_query_handler(
         on_support_request_detail,
-        SupportRequestDetailCallbackData().filter(),
+        SupportTicketDetailCallbackData().filter(),
         state='*',
     )
     dispatcher.register_message_handler(
