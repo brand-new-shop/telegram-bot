@@ -4,30 +4,24 @@ from typing import TypedDict
 from pydantic import BaseModel
 
 __all__ = (
-    'SupportSubject',
-    'SupportRequestCreate',
+    'SupportTicketCreate',
     'SupportRequest',
-    'SupportRequestPreview',
-    'SupportRequestCreated',
-    'ChooseSubjectCallbackData',
+    'SupportTicketPreview',
+    'SupportTicketCreated',
     'SupportRequestDetailCallbackData',
 )
 
 
-class SupportSubject(BaseModel):
-    id: int
-    name: str
-
-
-class SupportRequestCreate(BaseModel):
+class SupportTicketCreate(BaseModel):
     user_telegram_id: int
     issue: str
-    subject_id: int
+    subject: str
 
 
-class SupportRequestPreview(BaseModel):
+class SupportTicketPreview(BaseModel):
     id: int
-    issue_preview: str
+    subject: str
+    status: str
 
 
 class SupportRequest(BaseModel):
@@ -36,15 +30,11 @@ class SupportRequest(BaseModel):
     is_open: bool
     issue: str
     answer: str | None
-    subject: SupportSubject
+    subject: str
 
 
-class SupportRequestCreated(BaseModel):
+class SupportTicketCreated(BaseModel):
     id: int
-
-
-class ChooseSubjectCallbackData(TypedDict):
-    support_subject_id: int
 
 
 class SupportRequestDetailCallbackData(TypedDict):
