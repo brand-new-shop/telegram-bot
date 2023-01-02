@@ -43,7 +43,10 @@ class SupportAPIClient:
         request_json = support_ticket_create.dict(include={'issue', 'subject'})
         async with httpx.AsyncClient(base_url=self.__base_url) as client:
             response = await client.post(url, json=request_json)
-        if response.status_code != 201:
+        if response.status_code == 429:
+            seconds_to_wait = int(response.json()['seconds_to_wait'])
+            raise exceptions.SupportTicketCreationRateLimitExceededError(seconds_to_wait)
+        elif response.status_code != 201:
             raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
         try:
             response_json = response.json()

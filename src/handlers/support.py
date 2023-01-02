@@ -1,8 +1,9 @@
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
-from aiogram.types import Message, ContentType, CallbackQuery
+from aiogram.types import Message, ContentType, CallbackQuery, Update
 
+import exceptions
 import models
 from callback_data import SupportTicketDetailCallbackData
 from filters import MessageLengthFilter
@@ -17,9 +18,21 @@ from views import (
     SupportRequestDetailView,
     AcceptSupportRulesView,
     RequireTicketSubjectView,
+    SupportTicketRateLimitExceededView,
 )
 
 __all__ = ('register_handlers',)
+
+
+# Error handlers
+async def on_support_ticket_creation_rate_limit_exceeded_error(
+        update: Update,
+        exception: exceptions.SupportTicketCreationRateLimitExceededError,
+) -> bool:
+    await Dispatcher.get_current().current_state().finish()
+    view = SupportTicketRateLimitExceededView(exception.seconds_to_wait)
+    await answer_views(update.message, view)
+    return True
 
 
 # Validators
@@ -86,6 +99,11 @@ async def on_support_menu(message: Message) -> None:
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
+    dispatcher.register_errors_handler(
+        on_support_ticket_creation_rate_limit_exceeded_error,
+        exception=exceptions.SupportTicketCreationRateLimitExceededError,
+    )
+
     # Validators
     dispatcher.register_message_handler(
         on_support_ticket_subject_length_too_long,
