@@ -26,6 +26,12 @@ class SupportAPIClient:
             raise exceptions.ServerAPIError('Unable to parse response JSON')
         return models.SupportTicket.parse_obj(response_json)
 
+    async def close_ticket_by_id(self, ticket_id: int) -> bool:
+        url = f'/tickets/{ticket_id}/'
+        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+            response = await client.patch(url)
+        return response.status_code == 204
+
     async def get_user_tickets(self, telegram_id: int) -> tuple[models.SupportTicketPreview, ...]:
         url = f'/users/telegram-id/{telegram_id}/tickets/'
         async with httpx.AsyncClient(base_url=self.__base_url) as client:
