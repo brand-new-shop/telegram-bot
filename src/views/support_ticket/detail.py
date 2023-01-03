@@ -1,12 +1,13 @@
+from aiogram.types import InlineKeyboardMarkup
+
 import models
-from keyboards import RemoveMessageMarkup
+from keyboards import SupportTicketDetailMarkup
 from views.base import View
 
-__all__ = ('SupportRequestDetailView',)
+__all__ = ('SupportTicketDetailView',)
 
 
-class SupportRequestDetailView(View):
-    reply_markup = RemoveMessageMarkup()
+class SupportTicketDetailView(View):
 
     def __init__(self, ticket: models.SupportTicket):
         self.__ticket = ticket
@@ -24,3 +25,6 @@ class SupportRequestDetailView(View):
             lines.append('➖➖➖➖➖➖➖➖➖➖')
         lines.append(f'📱 Status: {self.__ticket.status}')
         return '\n'.join(lines)
+
+    def get_reply_markup(self) -> InlineKeyboardMarkup:
+        return SupportTicketDetailMarkup(self.__ticket)

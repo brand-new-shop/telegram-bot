@@ -1,3 +1,5 @@
+import asyncio
+
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
@@ -5,7 +7,7 @@ from aiogram.types import Message, ContentType, CallbackQuery, Update
 
 import exceptions
 import models
-from callback_data import SupportTicketDetailCallbackData
+from callback_data import SupportTicketDetailCallbackData, CloseSupportTicketCallbackData
 from filters import MessageLengthFilter
 from services.api import SupportAPIClient, ShopInfoAPIClient
 from shortcuts import answer_views, edit_message_by_view
@@ -15,7 +17,7 @@ from views import (
     SupportTicketCreatedView,
     RequireTicketIssueView,
     SupportTicketsListView,
-    SupportRequestDetailView,
+    SupportTicketDetailView,
     AcceptSupportRulesView,
     RequireTicketSubjectView,
     SupportTicketRateLimitExceededView,
@@ -44,13 +46,31 @@ async def on_support_ticket_subject_length_too_long(message: Message) -> None:
     await message.answer('Subject is too long (64 characters maximum)')
 
 
+async def on_close_ticket(
+        callback_query: CallbackQuery,
+        support_api_client: SupportAPIClient,
+        callback_data: models.SupportTicketDetailCallbackData,
+) -> None:
+    ticket_id = callback_data['ticket_id']
+    is_closed = await support_api_client.close_ticket_by_id(ticket_id)
+    if not is_closed:
+        await callback_query.answer('Unable to close the ticket', show_alert=True)
+        return
+    support_ticket, _ = await asyncio.gather(
+        support_api_client.get_ticket_by_id(ticket_id),
+        callback_query.answer('You have closed the ticket', show_alert=True),
+    )
+    view = SupportTicketDetailView(support_ticket)
+    await edit_message_by_view(callback_query.message, view)
+
+
 async def on_support_request_detail(
         callback_query: CallbackQuery,
         support_api_client: SupportAPIClient,
         callback_data: models.SupportTicketDetailCallbackData,
 ):
     support_request = await support_api_client.get_ticket_by_id(callback_data['ticket_id'])
-    view = SupportRequestDetailView(support_request)
+    view = SupportTicketDetailView(support_request)
     await edit_message_by_view(callback_query.message, view)
     await callback_query.answer()
 
@@ -116,6 +136,11 @@ def register_handlers(dispatcher: Dispatcher) -> None:
         state=NewSupportRequestStates.issue,
     )
 
+    dispatcher.register_callback_query_handler(
+        on_close_ticket,
+        CloseSupportTicketCallbackData().filter(),
+        state='*',
+    )
     dispatcher.register_message_handler(
         on_support_rules_were_read,
         Text('✅ I did'),

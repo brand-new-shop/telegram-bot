@@ -6,6 +6,7 @@ __all__ = (
     'SupportTicketDetailCallbackData',
     'CategoryDetailCallbackData',
     'ProductDetailCallbackData',
+    'CloseSupportTicketCallbackData',
 )
 
 
@@ -37,3 +38,13 @@ class ProductDetailCallbackData(CallbackData):
     def parse(self, callback_data: str) -> models.ChooseProductCallbackData:
         callback_data = super().parse(callback_data)
         return {'product_id': int(callback_data['product_id'])}
+
+
+class CloseSupportTicketCallbackData(CallbackData):
+
+    def __init__(self):
+        super().__init__('close-ticket', 'ticket_id')
+
+    def parse(self, callback_data: str) -> models.CloseSupportTicketCallbackData:
+        callback_data = super().parse(callback_data)
+        return {'ticket_id': int(callback_data['ticket_id'])}

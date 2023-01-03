@@ -9,6 +9,7 @@ __all__ = (
     'SupportTicketPreview',
     'SupportTicketCreated',
     'SupportTicketDetailCallbackData',
+    'CloseSupportTicketCallbackData',
 )
 
 
@@ -38,4 +39,8 @@ class SupportTicketCreated(BaseModel):
 
 
 class SupportTicketDetailCallbackData(TypedDict):
+    ticket_id: int
+
+
+class CloseSupportTicketCallbackData(TypedDict):
     ticket_id: int
