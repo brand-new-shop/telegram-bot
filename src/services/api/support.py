@@ -15,7 +15,7 @@ class SupportAPIClient:
         self.__base_url = base_url
 
     async def get_ticket_by_id(self, ticket_id: int) -> models.SupportTicket:
-        url = f'/users/tickets/{ticket_id}/'
+        url = f'/tickets/{ticket_id}/'
         async with httpx.AsyncClient(base_url=self.__base_url) as client:
             response = await client.get(url)
         if response.status_code != 200:
