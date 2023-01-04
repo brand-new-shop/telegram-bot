@@ -22,3 +22,7 @@ class SupportTicketCreationRateLimitExceededError(ServerAPIError):
     def __init__(self, seconds_to_wait: int | float):
         super().__init__()
         self.seconds_to_wait = seconds_to_wait
+
+
+class SupportTicketsNotFoundError(ServerAPIError):
+    pass

@@ -26,6 +26,14 @@ from views import (
 __all__ = ('register_handlers',)
 
 
+async def on_support_tickets_not_found_error(
+        update: Update,
+        exception: exceptions.SupportTicketsNotFoundError,
+) -> bool:
+    await update.message.answer('You haven\'t created any ticket')
+    return True
+
+
 # Error handlers
 async def on_support_ticket_creation_rate_limit_exceeded_error(
         update: Update,
@@ -119,6 +127,10 @@ async def on_support_menu(message: Message) -> None:
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
+    dispatcher.register_errors_handler(
+        on_support_tickets_not_found_error,
+        exception=exceptions.SupportTicketsNotFoundError,
+    )
     dispatcher.register_errors_handler(
         on_support_ticket_creation_rate_limit_exceeded_error,
         exception=exceptions.SupportTicketCreationRateLimitExceededError,
