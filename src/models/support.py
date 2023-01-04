@@ -10,6 +10,10 @@ __all__ = (
     'SupportTicketCreated',
     'SupportTicketDetailCallbackData',
     'CloseSupportTicketCallbackData',
+    'ReplyToTicketDetailCallbackData',
+    'ReplyToTicketCreateCallbackData',
+    'ReplyToTicketCreated',
+    'ReplyToTicket',
 )
 
 
@@ -44,3 +48,19 @@ class SupportTicketDetailCallbackData(TypedDict):
 
 class CloseSupportTicketCallbackData(TypedDict):
     ticket_id: int
+
+
+class ReplyToTicketCreateCallbackData(TypedDict):
+    ticket_id: int
+
+
+class ReplyToTicketDetailCallbackData(TypedDict):
+    ticket_reply_id: int
+
+
+class ReplyToTicketCreated(BaseModel):
+    id: int
+
+
+class ReplyToTicket(BaseModel):
+    id: int

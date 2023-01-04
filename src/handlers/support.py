@@ -54,6 +54,10 @@ async def on_support_ticket_subject_length_too_long(message: Message) -> None:
     await message.answer('Subject is too long (64 characters maximum)')
 
 
+async def on_reply_to_ticket(callback_query: CallbackQuery) -> None:
+    pass
+
+
 async def on_close_ticket(
         callback_query: CallbackQuery,
         support_api_client: SupportAPIClient,
@@ -77,8 +81,11 @@ async def on_support_ticket_detail(
         support_api_client: SupportAPIClient,
         callback_data: models.SupportTicketDetailCallbackData,
 ):
-    support_request = await support_api_client.get_ticket_by_id(callback_data['ticket_id'])
-    view = SupportTicketDetailView(support_request)
+    support_ticket, ticket_reply_ids = await asyncio.gather(
+        support_api_client.get_ticket_by_id(callback_data['ticket_id']),
+        support_api_client.get_ticket_reply_ids(callback_data['ticket_id']),
+    )
+    view = SupportTicketDetailView(support_ticket, ticket_reply_ids)
     await edit_message_by_view(callback_query.message, view)
     await callback_query.answer()
 

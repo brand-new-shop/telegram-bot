@@ -1,3 +1,5 @@
+from typing import Iterable
+
 from aiogram.types import InlineKeyboardMarkup
 
 import models
@@ -9,8 +11,9 @@ __all__ = ('SupportTicketDetailView',)
 
 class SupportTicketDetailView(View):
 
-    def __init__(self, ticket: models.SupportTicket):
+    def __init__(self, ticket: models.SupportTicket, reply_ids: Iterable[int]):
         self.__ticket = ticket
+        self.__reply_ids = reply_ids
 
     def get_text(self) -> str:
         lines = [
@@ -27,4 +30,4 @@ class SupportTicketDetailView(View):
         return '\n'.join(lines)
 
     def get_reply_markup(self) -> InlineKeyboardMarkup:
-        return SupportTicketDetailMarkup(self.__ticket)
+        return SupportTicketDetailMarkup(self.__ticket, self.__reply_ids)
