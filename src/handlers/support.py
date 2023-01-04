@@ -11,6 +11,7 @@ from callback_data import (
     SupportTicketDetailCallbackData,
     CloseSupportTicketCallbackData,
     CreateReplyToTicketCallbackData,
+    ReplyToTicketDetailCallbackData
 )
 from filters import MessageLengthFilter
 from services.api import SupportAPIClient, ShopInfoAPIClient
@@ -25,6 +26,7 @@ from views import (
     AcceptSupportRulesView,
     RequireTicketSubjectView,
     SupportTicketRateLimitExceededView,
+    ReplyToTicketDetailView,
 )
 
 __all__ = ('register_handlers',)
@@ -111,6 +113,8 @@ async def on_ticket_reply_detail(
 ) -> None:
     ticket_reply_id = callback_data['ticket_reply_id']
     reply_to_ticket = await support_api_client.get_reply_to_ticket(ticket_reply_id)
+    view = ReplyToTicketDetailView(reply_to_ticket)
+    await answer_views(callback_query.message, view)
     await callback_query.answer()
 
 
@@ -201,6 +205,11 @@ def register_handlers(dispatcher: Dispatcher) -> None:
         state=NewSupportRequestStates.issue,
     )
 
+    dispatcher.register_callback_query_handler(
+        on_ticket_reply_detail,
+        ReplyToTicketDetailCallbackData().filter(),
+        state='*',
+    )
     dispatcher.register_message_handler(
         on_create_reply_to_ticket_issue_input,
         state=NewReplyToTicketStates.issue,

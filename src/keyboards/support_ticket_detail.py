@@ -20,7 +20,7 @@ class SupportTicketDetailMarkup(InlineKeyboardMarkup):
         for i, reply_id in enumerate(reply_ids, start=1):
             self.insert(InlineKeyboardButton(
                 text=f'Reply #{i}',
-                callback_data=ReplyToTicketDetailCallbackData().new(ticket_reply_id=i),
+                callback_data=ReplyToTicketDetailCallbackData().new(ticket_reply_id=reply_id),
             ))
 
         if support_ticket.status != 'Closed':

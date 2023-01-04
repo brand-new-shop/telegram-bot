@@ -64,3 +64,7 @@ class ReplyToTicketCreated(BaseModel):
 
 class ReplyToTicket(BaseModel):
     id: int
+    created_at: datetime.datetime
+    issue: str
+    answer: str | None
+    ticket: SupportTicket
