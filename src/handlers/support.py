@@ -112,7 +112,10 @@ async def on_support_ticket_subject_input(message: Message, state: FSMContext) -
 
 
 async def on_new_support_request(message: Message, shop_info_api_client: ShopInfoAPIClient) -> None:
-    support_rules = await shop_info_api_client.get_support_rules_info()
+    try:
+        support_rules = await shop_info_api_client.get_support_rules_info()
+    except exceptions.ShopInfoNotFoundError:
+        support_rules = models.ShopInfo(key='support_rules', value='support_rules')
     view = AcceptSupportRulesView(support_rules)
     await answer_views(message, view)
 
