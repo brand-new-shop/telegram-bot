@@ -1,9 +1,8 @@
-import json
-
 import httpx
 
 import exceptions
 import models
+from services.api.response import raise_for_unexpected_status_code, safely_decode_response_json
 
 __all__ = ('ShopInfoAPIClient',)
 
@@ -20,11 +19,8 @@ class ShopInfoAPIClient:
         if response.status_code == 404:
             raise exceptions.ShopInfoNotFoundError(key=key)
         elif response.status_code != 200:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
         return models.ShopInfo.parse_obj(response_json)
 
     async def get_faq_info(self) -> models.ShopInfo:

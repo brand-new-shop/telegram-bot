@@ -1,10 +1,9 @@
-import json
-
 import httpx
 from pydantic import parse_obj_as
 
 import exceptions
 import models
+from services.api.response import safely_decode_response_json, raise_for_unexpected_status_code
 
 __all__ = ('UsersAPIClient',)
 
@@ -20,11 +19,8 @@ class UsersAPIClient:
         if response.status_code == 409:
             raise exceptions.UserAlreadyExistsError
         elif response.status_code != 201:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
         return models.User.parse_obj(response_json)
 
     async def get_by_telegram_id(self, telegram_id: int) -> models.User:
@@ -34,11 +30,8 @@ class UsersAPIClient:
         if response.status_code == 404:
             raise exceptions.UserNotFoundError(f'User by Telegram ID {telegram_id} is not found')
         elif response.status_code != 200:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
         return models.User.parse_obj(response_json)
 
     async def get_orders_by_telegram_id(
@@ -56,11 +49,8 @@ class UsersAPIClient:
         async with httpx.AsyncClient(base_url=self.__base_url) as client:
             response = await client.get(url, params=params)
         if response.status_code != 200:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
         return parse_obj_as(tuple[models.OrderPreview, ...], response_json)
 
     async def get_orders_statistics(self, user_telegram_id: int) -> models.OrdersStatistics:
@@ -68,9 +58,15 @@ class UsersAPIClient:
         async with httpx.AsyncClient(base_url=self.__base_url) as client:
             response = await client.get(url)
         if response.status_code != 200:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
         return models.OrdersStatistics.parse_obj(response_json)
+
+    async def get_user_orders_count(self, telegram_id: int) -> models.OrdersTotalCount:
+        url = f'/users/telegram-id/{telegram_id}/orders/count/'
+        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+            response = await client.get(url)
+        if response.status_code != 200:
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
+        return models.OrdersTotalCount.parse_obj(response_json)

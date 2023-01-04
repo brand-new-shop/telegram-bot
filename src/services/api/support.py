@@ -1,10 +1,9 @@
-import json
-
 import httpx
 from pydantic import parse_obj_as
 
-import models
 import exceptions
+import models
+from services.api.response import raise_for_unexpected_status_code, safely_decode_response_json
 
 __all__ = ('SupportAPIClient',)
 
@@ -19,11 +18,8 @@ class SupportAPIClient:
         async with httpx.AsyncClient(base_url=self.__base_url) as client:
             response = await client.get(url)
         if response.status_code != 200:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
         return models.SupportTicket.parse_obj(response_json)
 
     async def close_ticket_by_id(self, ticket_id: int) -> bool:
@@ -36,12 +32,11 @@ class SupportAPIClient:
         url = f'/users/telegram-id/{telegram_id}/tickets/'
         async with httpx.AsyncClient(base_url=self.__base_url) as client:
             response = await client.get(url)
+        if response.status_code == 404:
+            raise exceptions.SupportTicketsNotFoundError
         if response.status_code != 200:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
         return parse_obj_as(tuple[models.SupportTicketPreview, ...], response_json)
 
     async def create_ticket(self, support_ticket_create: models.SupportTicketCreate) -> models.SupportTicketCreated:
@@ -53,9 +48,6 @@ class SupportAPIClient:
             seconds_to_wait = int(response.json()['seconds_to_wait'])
             raise exceptions.SupportTicketCreationRateLimitExceededError(seconds_to_wait)
         elif response.status_code != 201:
-            raise exceptions.ServerAPIError(f'Unexpected status code "{response.status_code}"')
-        try:
-            response_json = response.json()
-        except json.JSONDecodeError:
-            raise exceptions.ServerAPIError('Unable to parse response JSON')
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
         return models.SupportTicketCreated.parse_obj(response_json)
