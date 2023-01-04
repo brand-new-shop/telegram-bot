@@ -51,3 +51,31 @@ class SupportAPIClient:
             raise_for_unexpected_status_code(response.status_code)
         response_json = safely_decode_response_json(response)
         return models.SupportTicketCreated.parse_obj(response_json)
+
+    async def create_reply_to_ticket(self, ticket_id: int, reply_text: str) -> models.ReplyToTicketCreated:
+        url = f'/tickets/{ticket_id}/replies/'
+        request_body = {'issue': reply_text}
+        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+            response = await client.post(url, json=request_body)
+        if response.status_code != 201:
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
+        return models.ReplyToTicketCreated.parse_obj(response_json)
+
+    async def get_ticket_reply_ids(self, ticket_id: int) -> tuple[int]:
+        url = f'/tickets/{ticket_id}/replies/'
+        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+            response = await client.get(url)
+        if response.status_code != 200:
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
+        return parse_obj_as(tuple[int, ...], response_json)
+
+    async def get_reply_to_ticket(self, ticket_reply_id: int) -> models.ReplyToTicket:
+        url = f'/tickets/replies/{ticket_reply_id}/'
+        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+            response = await client.get(url)
+        if response.status_code != 200:
+            raise_for_unexpected_status_code(response.status_code)
+        response_json = safely_decode_response_json(response)
+        return models.ReplyToTicket.parse_obj(response_json)
