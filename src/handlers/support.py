@@ -7,11 +7,15 @@ from aiogram.types import Message, ContentType, CallbackQuery, Update
 
 import exceptions
 import models
-from callback_data import SupportTicketDetailCallbackData, CloseSupportTicketCallbackData
+from callback_data import (
+    SupportTicketDetailCallbackData,
+    CloseSupportTicketCallbackData,
+    CreateReplyToTicketCallbackData,
+)
 from filters import MessageLengthFilter
 from services.api import SupportAPIClient, ShopInfoAPIClient
 from shortcuts import answer_views, edit_message_by_view
-from states import NewSupportRequestStates
+from states import NewSupportRequestStates, NewReplyToTicketStates
 from views import (
     SupportMenuView,
     SupportTicketCreatedView,
@@ -46,16 +50,16 @@ async def on_support_ticket_creation_rate_limit_exceeded_error(
 
 
 # Validators
+async def on_reply_to_ticket_issue_length_too_long(message: Message) -> None:
+    await message.answer('Issue text is too long (4096 characters maximum)')
+
+
 async def on_support_ticket_issue_length_too_long(message: Message) -> None:
     await message.answer('Issue text is too long (4096 characters maximum)')
 
 
 async def on_support_ticket_subject_length_too_long(message: Message) -> None:
     await message.answer('Subject is too long (64 characters maximum)')
-
-
-async def on_reply_to_ticket(callback_query: CallbackQuery) -> None:
-    pass
 
 
 async def on_close_ticket(
@@ -68,19 +72,53 @@ async def on_close_ticket(
     if not is_closed:
         await callback_query.answer('Unable to close the ticket', show_alert=True)
         return
-    support_ticket, _ = await asyncio.gather(
+    support_ticket, ticket_reply_ids, _ = await asyncio.gather(
         support_api_client.get_ticket_by_id(ticket_id),
+        support_api_client.get_ticket_reply_ids(callback_data['ticket_id']),
         callback_query.answer('You have closed the ticket', show_alert=True),
     )
-    view = SupportTicketDetailView(support_ticket)
+    view = SupportTicketDetailView(support_ticket, ticket_reply_ids)
     await edit_message_by_view(callback_query.message, view)
+
+
+async def on_create_reply_to_ticket_issue_input(
+        message: Message,
+        support_api_client: SupportAPIClient,
+        state: FSMContext,
+) -> None:
+    state_data = await state.get_data()
+    await state.finish()
+    ticket_id = state_data['ticket_id']
+    await support_api_client.create_reply_to_ticket(ticket_id, message.text)
+    await message.answer('Your reply added to this active request')
+
+
+async def on_create_reply_to_ticket(
+        callback_query: CallbackQuery,
+        callback_data: models.ReplyToTicketCreateCallbackData,
+        state: FSMContext,
+) -> None:
+    await NewReplyToTicketStates.issue.set()
+    await state.update_data(ticket_id=callback_data['ticket_id'])
+    await callback_query.message.answer('Please enter more details or comments related to this active request:')
+    await callback_query.answer()
+
+
+async def on_ticket_reply_detail(
+        callback_query: CallbackQuery,
+        support_api_client: SupportAPIClient,
+        callback_data: models.ReplyToTicketDetailCallbackData,
+) -> None:
+    ticket_reply_id = callback_data['ticket_reply_id']
+    reply_to_ticket = await support_api_client.get_reply_to_ticket(ticket_reply_id)
+    await callback_query.answer()
 
 
 async def on_support_ticket_detail(
         callback_query: CallbackQuery,
         support_api_client: SupportAPIClient,
         callback_data: models.SupportTicketDetailCallbackData,
-):
+) -> None:
     support_ticket, ticket_reply_ids = await asyncio.gather(
         support_api_client.get_ticket_by_id(callback_data['ticket_id']),
         support_api_client.get_ticket_reply_ids(callback_data['ticket_id']),
@@ -148,6 +186,11 @@ def register_handlers(dispatcher: Dispatcher) -> None:
 
     # Validators
     dispatcher.register_message_handler(
+        on_reply_to_ticket_issue_length_too_long,
+        ~MessageLengthFilter(max_length=4096),
+        state=NewReplyToTicketStates.issue,
+    )
+    dispatcher.register_message_handler(
         on_support_ticket_subject_length_too_long,
         ~MessageLengthFilter(max_length=64),
         state=NewSupportRequestStates.subject,
@@ -158,6 +201,15 @@ def register_handlers(dispatcher: Dispatcher) -> None:
         state=NewSupportRequestStates.issue,
     )
 
+    dispatcher.register_message_handler(
+        on_create_reply_to_ticket_issue_input,
+        state=NewReplyToTicketStates.issue,
+    )
+    dispatcher.register_callback_query_handler(
+        on_create_reply_to_ticket,
+        CreateReplyToTicketCallbackData().filter(),
+        state='*',
+    )
     dispatcher.register_callback_query_handler(
         on_close_ticket,
         CloseSupportTicketCallbackData().filter(),
