@@ -72,7 +72,7 @@ async def on_close_ticket(
     await edit_message_by_view(callback_query.message, view)
 
 
-async def on_support_request_detail(
+async def on_support_ticket_detail(
         callback_query: CallbackQuery,
         support_api_client: SupportAPIClient,
         callback_data: models.SupportTicketDetailCallbackData,
@@ -162,7 +162,7 @@ def register_handlers(dispatcher: Dispatcher) -> None:
         state='*',
     )
     dispatcher.register_callback_query_handler(
-        on_support_request_detail,
+        on_support_ticket_detail,
         SupportTicketDetailCallbackData().filter(),
         state='*',
     )
