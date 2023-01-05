@@ -10,6 +10,6 @@ class UserBalanceMarkup(InlineKeyboardMarkup):
     def __init__(self):
         super().__init__(row_width=1)
         self.add(
-            InlineKeyboardButton('🔝 Top Up', callback_data='hello'),
+            InlineKeyboardButton('🔝 Top Up', callback_data='top-up'),
             RemoveMessageButton(),
         )
