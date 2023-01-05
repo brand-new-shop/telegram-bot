@@ -1,7 +1,8 @@
 import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+from typing_extensions import TypedDict
 
 __all__ = (
     'CategoryPreview',
@@ -9,11 +10,11 @@ __all__ = (
     'ProductPreview',
     'ChooseCategoryCallbackData',
     'ChooseProductCallbackData',
+    'OrdersTotalCount',
     'OrderPreview',
     'OrdersStatistics',
+    'Product',
 )
-
-from typing_extensions import TypedDict
 
 
 class CategoryPreview(BaseModel):
@@ -51,7 +52,30 @@ class OrderPreview(BaseModel):
     total_price: Decimal
 
 
+class OrdersTotalCount(BaseModel):
+    user_telegram_id: int
+    orders_total_count: int
+
+
 class OrdersStatistics(BaseModel):
     user_telegram_id: int
     orders_count: int
     orders_total_price: Decimal
+
+
+class Product(BaseModel):
+    id: int
+    name: str
+    description: str
+    price: Decimal
+    stocks_count: int
+    content: str
+    type: str
+    min_order_quantity: int
+    max_order_quantity: int
+    max_replacement_time_in_minutes: int
+    are_stocks_displayed: bool
+    is_hidden: bool
+    can_be_purchased: bool
+    category: Category
+    picture_urls: tuple[str, ...]
