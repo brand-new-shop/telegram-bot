@@ -5,6 +5,7 @@ from .category_menu import *
 from .menu import *
 from .product_detail import *
 from .profile import *
+from .reply_to_ticket import *
 from .shop_info import *
 from .support_menu import *
 from .support_ticket import *
