@@ -23,6 +23,7 @@ def main():
     shop_info_api_client = ShopInfoAPIClient(config.server.base_url)
 
     dependency_inject_middleware = DependencyInjectMiddleware(
+        server_base_url=config.server.base_url,
         users_api_client=users_api_client,
         support_api_client=support_api_client,
         products_api_client=products_api_client,
