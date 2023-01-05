@@ -7,7 +7,8 @@ from aiogram.types import ParseMode
 from handlers import register_handlers
 from config import Config
 from middlewares import DependencyInjectMiddleware
-from services.api import UsersAPIClient, SupportAPIClient, ProductsAPIClient, ShopInfoAPIClient
+from services.api import UsersAPIClient, SupportAPIClient, ProductsAPIClient, ShopInfoAPIClient, PaymentsAPIClient, \
+    APIClient
 
 
 def main():
@@ -17,10 +18,12 @@ def main():
     bot = Bot(config.telegram_bot.token, parse_mode=ParseMode.HTML)
     dispatcher = Dispatcher(bot, storage=MemoryStorage())
 
-    users_api_client = UsersAPIClient(config.server.base_url)
-    support_api_client = SupportAPIClient(config.server.base_url)
-    products_api_client = ProductsAPIClient(config.server.base_url)
-    shop_info_api_client = ShopInfoAPIClient(config.server.base_url)
+    api_client = APIClient(config.server.base_url.removesuffix('/') + '/api/')
+    users_api_client = UsersAPIClient(api_client)
+    support_api_client = SupportAPIClient(api_client)
+    products_api_client = ProductsAPIClient(api_client)
+    shop_info_api_client = ShopInfoAPIClient(api_client)
+    payments_api_client = PaymentsAPIClient(api_client)
 
     dependency_inject_middleware = DependencyInjectMiddleware(
         server_base_url=config.server.base_url,
@@ -28,6 +31,7 @@ def main():
         support_api_client=support_api_client,
         products_api_client=products_api_client,
         shop_info_api_client=shop_info_api_client,
+        payments_api_client=payments_api_client,
     )
 
     dispatcher.setup_middleware(dependency_inject_middleware)

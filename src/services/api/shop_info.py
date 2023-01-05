@@ -1,7 +1,6 @@
-import httpx
-
 import exceptions
 import models
+from services.api.api_client import APIClient
 from services.api.response import raise_for_unexpected_status_code, safely_decode_response_json
 
 __all__ = ('ShopInfoAPIClient',)
@@ -9,12 +8,12 @@ __all__ = ('ShopInfoAPIClient',)
 
 class ShopInfoAPIClient:
 
-    def __init__(self, base_url: str):
-        self.__base_url = base_url
+    def __init__(self, api_client: APIClient):
+        self._api_client = api_client
 
     async def __get_shop_info(self, key: str) -> models.ShopInfo:
         url = f'/info/{key}/'
-        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+        async with self._api_client.closing_http_client() as client:
             response = await client.get(url)
         if response.status_code == 404:
             raise exceptions.ShopInfoNotFoundError(key=key)

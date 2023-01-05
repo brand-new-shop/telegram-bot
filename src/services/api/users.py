@@ -1,8 +1,8 @@
-import httpx
 from pydantic import parse_obj_as
 
 import exceptions
 import models
+from services.api.api_client import APIClient
 from services.api.response import safely_decode_response_json, raise_for_unexpected_status_code
 
 __all__ = ('UsersAPIClient',)
@@ -10,11 +10,11 @@ __all__ = ('UsersAPIClient',)
 
 class UsersAPIClient:
 
-    def __init__(self, base_url: str):
-        self.__base_url = base_url
+    def __init__(self, api_client: APIClient):
+        self._api_client = api_client
 
     async def create(self, telegram_id: int, username: str | None) -> models.User:
-        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+        async with self._api_client.closing_http_client() as client:
             response = await client.post('/users/', json={'telegram_id': telegram_id, 'username': username})
         if response.status_code == 409:
             raise exceptions.UserAlreadyExistsError
@@ -25,7 +25,7 @@ class UsersAPIClient:
 
     async def get_by_telegram_id(self, telegram_id: int) -> models.User:
         url = f'/users/telegram-id/{telegram_id}/'
-        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+        async with self._api_client.closing_http_client() as client:
             response = await client.get(url)
         if response.status_code == 404:
             raise exceptions.UserNotFoundError(f'User by Telegram ID {telegram_id} is not found')
@@ -46,7 +46,7 @@ class UsersAPIClient:
             params['limit'] = limit
         if offset is not None:
             params['offset'] = offset
-        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+        async with self._api_client.closing_http_client() as client:
             response = await client.get(url, params=params)
         if response.status_code != 200:
             raise_for_unexpected_status_code(response.status_code)
@@ -55,7 +55,7 @@ class UsersAPIClient:
 
     async def get_orders_statistics(self, user_telegram_id: int) -> models.OrdersStatistics:
         url = f'/users/telegram-id/{user_telegram_id}/orders/statistics/'
-        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+        async with self._api_client.closing_http_client() as client:
             response = await client.get(url)
         if response.status_code != 200:
             raise_for_unexpected_status_code(response.status_code)
@@ -64,7 +64,7 @@ class UsersAPIClient:
 
     async def get_user_orders_count(self, telegram_id: int) -> models.OrdersTotalCount:
         url = f'/users/telegram-id/{telegram_id}/orders/count/'
-        async with httpx.AsyncClient(base_url=self.__base_url) as client:
+        async with self._api_client.closing_http_client() as client:
             response = await client.get(url)
         if response.status_code != 200:
             raise_for_unexpected_status_code(response.status_code)
