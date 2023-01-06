@@ -1,8 +1,10 @@
 import asyncio
+import logging
 
 from aiogram import Dispatcher
 from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, CallbackQuery, InputMediaPhoto, MediaGroup
+from aiogram.utils.exceptions import BadRequest
 
 import models
 from callback_data import CategoryDetailCallbackData, ProductDetailCallbackData
@@ -19,13 +21,21 @@ async def on_product_menu(
 ) -> None:
     product_id = callback_data['product_id']
     product = await products_api_client.get_product_by_id(product_id)
+    is_pictures_sent = True
     if product.picture_urls:
         view = ProductDetailWithPhotoView(server_base_url, product)
-        await answer_views(callback_query.message, view)
-    else:
-        view = ProductDetailView(product)
-        await edit_message_by_view(callback_query.message, view)
-        await callback_query.answer()
+        try:
+            await answer_views(callback_query.message, view)
+        except BadRequest:
+            is_pictures_sent = False
+            logging.error(f'Could send photos for product #{product.id}')
+        else:
+            return
+    view = ProductDetailView(product)
+    edited_message = await edit_message_by_view(callback_query.message, view)
+    if not is_pictures_sent:
+        await edited_message.reply('Could not load photo')
+    await callback_query.answer()
 
 
 async def on_category_menu(
