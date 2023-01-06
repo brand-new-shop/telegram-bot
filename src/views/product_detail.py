@@ -1,6 +1,7 @@
-from aiogram.types import MediaGroup, InputMediaPhoto
+from aiogram.types import MediaGroup, InputMediaPhoto, InlineKeyboardMarkup
 
 import models
+from keyboards import ProductDetailMarkup
 from views.base import View
 
 __all__ = ('ProductDetailView', 'ProductDetailWithPhotoView')
@@ -21,6 +22,9 @@ class ProductDetailView(View):
         if self.__product.stocks_count < 0:
             lines.append('❗️  The items are temporarily unavailable ❗️')
         return '\n'.join(lines)
+
+    def get_reply_markup(self) -> InlineKeyboardMarkup:
+        return ProductDetailMarkup(self.__product)
 
 
 class ProductDetailWithPhotoView(View):
@@ -51,3 +55,6 @@ class ProductDetailWithPhotoView(View):
             for picture_url in self.__product.picture_urls[1:]
         ]
         return MediaGroup(first_media_photo + input_media_photos)
+
+    def get_reply_markup(self) -> InlineKeyboardMarkup:
+        return ProductDetailMarkup(self.__product)

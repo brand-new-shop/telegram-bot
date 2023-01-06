@@ -9,7 +9,7 @@ class MenuMarkup(ReplyKeyboardMarkup):
         super().__init__(
             resize_keyboard=True,
             keyboard=[
-                [KeyboardButton('🛒 Products')],
+                [KeyboardButton('🛒 Products'), KeyboardButton('🛒 My Shopping Cart')],
                 [KeyboardButton('ℹ️ FAQ'), KeyboardButton('📗 Rules'), KeyboardButton('💲 Balance')],
                 [KeyboardButton('📱 Profile'), KeyboardButton('👨‍💻 Support')],
             ],
