@@ -12,10 +12,9 @@ from core import exceptions
 from core.shortcuts import answer_views
 from info.services import ShopInfoAPIClient
 from info.views import ShopInfoView
-from models import UserProfileDTO
+from users.models import UserProfileDTO
 from users.services import UsersAPIClient
-from users.views import MenuView, AcceptRulesView
-from views import ProfileView
+from users.views import MenuView, AcceptRulesView, ProfileView
 
 __all__ = ('register_handlers',)
 

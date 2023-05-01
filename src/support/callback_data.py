@@ -1,6 +1,6 @@
 from aiogram.utils.callback_data import CallbackData
 
-import models
+from support import models
 
 __all__ = (
     'SupportTicketDetailCallbackData',

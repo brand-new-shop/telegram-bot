@@ -12,7 +12,7 @@ from core.shortcuts import answer_views, edit_message_by_view
 from users.keyboards import RemoveMessageButton
 from payments.services import PaymentsAPIClient
 from payments.views import CoinbasePaymentView
-from states import BalanceTopUpStates
+from payments.states import BalanceTopUpStates
 from users.services import UsersAPIClient
 from users.views import UserBalanceView
 

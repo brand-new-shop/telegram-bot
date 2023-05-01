@@ -1,5 +1,5 @@
-import models
 from core.views import View
+from info import models
 
 __all__ = ('ShopInfoView',)
 

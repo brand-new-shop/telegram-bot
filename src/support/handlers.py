@@ -8,7 +8,9 @@ from aiogram.types import (
     ContentType,
     CallbackQuery,
     Update,
-    ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton,
+    ReplyKeyboardRemove,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
 )
 
 from core import exceptions
@@ -16,16 +18,12 @@ from core.filters import MessageLengthFilter
 from core.shortcuts import answer_views, edit_message_by_view
 from info.models import ShopInfo
 from info.services import ShopInfoAPIClient
+from support import models as support_models
 from support.callback_data import (
     SupportTicketDetailCallbackData,
     CloseSupportTicketCallbackData,
     CreateReplyToTicketCallbackData,
     ReplyToTicketDetailCallbackData,
-)
-from support.models import (
-    SupportTicketDetailCallbackData,
-    SupportTicketCreate,
-    ReplyToTicketCreateCallbackData,
 )
 from support.services import SupportAPIClient
 from support.states import NewSupportRequestStates, NewReplyToTicketStates
@@ -109,7 +107,7 @@ async def on_create_reply_to_ticket_issue_input(
 
 async def on_create_reply_to_ticket(
         callback_query: CallbackQuery,
-        callback_data: ReplyToTicketCreateCallbackData,
+        callback_data: support_models.ReplyToTicketCreateCallbackData,
         state: FSMContext,
 ) -> None:
     await NewReplyToTicketStates.issue.set()
@@ -160,7 +158,7 @@ async def on_support_ticket_issue_input(
         support_api_client: SupportAPIClient,
 ) -> None:
     state_data = await state.get_data()
-    ticket_create = SupportTicketCreate(
+    ticket_create = support_models.SupportTicketCreate(
         issue=message.text,
         subject=state_data['subject'],
         user_telegram_id=message.from_user.id,

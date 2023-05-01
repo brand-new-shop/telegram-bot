@@ -6,11 +6,14 @@ from aiogram.dispatcher.filters import Text
 from aiogram.types import Message, CallbackQuery
 from aiogram.utils.exceptions import BadRequest
 
-from callback_data import CategoryDetailCallbackData, ProductDetailCallbackData
 from core.shortcuts import answer_views, edit_message_by_view
 from products import models
+from products.callback_data import (
+    CategoryDetailCallbackData,
+    ProductDetailCallbackData,
+)
 from products.services import ProductsAPIClient
-from views import (
+from products.views import (
     CategoriesListView,
     CategoryMenuView,
     ProductDetailView,

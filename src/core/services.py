@@ -4,7 +4,7 @@ import logging
 
 import httpx
 
-import exceptions
+from core import exceptions
 
 __all__ = (
     'APIClient',

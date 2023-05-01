@@ -7,8 +7,8 @@ from aiogram.types import (
 )
 
 from core.views import View
-from keyboards import MenuMarkup
-from models import UserProfileDTO
+from users.models import UserProfileDTO
+from users.keyboards import MenuMarkup
 
 __all__ = ('UserBalanceView', 'MenuView', 'ProfileView', 'AcceptRulesView')
 

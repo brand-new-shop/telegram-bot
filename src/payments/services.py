@@ -1,6 +1,6 @@
 from decimal import Decimal
 
-import models
+from payments import models
 from core.services import APIClient, safely_decode_response_json
 
 __all__ = ('PaymentsAPIClient',)

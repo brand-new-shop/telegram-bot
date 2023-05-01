@@ -4,6 +4,10 @@ from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import ParseMode
 
+import payments.handlers
+import products.handlers
+import support.handlers
+import users.handlers
 from config import load_config
 from core.middlewares import DependencyInjectMiddleware
 from core.services import APIClient
@@ -15,7 +19,10 @@ from users.services import UsersAPIClient
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
-    pass
+    payments.handlers.register_handlers(dispatcher)
+    products.handlers.register_handlers(dispatcher)
+    support.handlers.register_handlers(dispatcher)
+    users.handlers.register_handlers(dispatcher)
 
 
 def main():

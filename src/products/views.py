@@ -4,9 +4,12 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.types import InlineKeyboardMarkup
 from aiogram.types import MediaGroup, InputMediaPhoto
 
-from products import models
-from callback_data import CategoryDetailCallbackData, ProductDetailCallbackData
 from core.views import View
+from products import models
+from products.callback_data import (
+    CategoryDetailCallbackData,
+    ProductDetailCallbackData,
+)
 from users.keyboards import RemoveMessageButton
 
 __all__ = (
@@ -70,13 +73,17 @@ class CategoriesListView(View):
         self.__products = products
 
     def get_reply_markup(self) -> InlineKeyboardMarkup:
-        markup = InlineKeyboardMarkup()
+        markup = InlineKeyboardMarkup(row_width=1)
 
         for category in self.__categories:
-            text = category.name if category.emoji_icon is None else f'{category.emoji_icon} {category.name}'
-            button = InlineKeyboardButton(text,
-                                          callback_data=CategoryDetailCallbackData().new(
-                                              category_id=category.id))
+            text = (category.name if category.emoji_icon is None
+                    else f'{category.emoji_icon} {category.name}')
+            button = InlineKeyboardButton(
+                text=text,
+                callback_data=CategoryDetailCallbackData().new(
+                    category_id=category.id,
+                ),
+            )
             markup.insert(button)
 
         markup.insert(RemoveMessageButton())
