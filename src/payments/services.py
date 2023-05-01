@@ -1,15 +1,12 @@
 from decimal import Decimal
 
 from payments import models
-from core.services import APIClient, safely_decode_response_json
+from core.services import safely_decode_response_json, BaseAPIClient
 
 __all__ = ('PaymentsAPIClient',)
 
 
-class PaymentsAPIClient:
-
-    def __init__(self, api_client: APIClient):
-        self._api_client = api_client
+class PaymentsAPIClient(BaseAPIClient):
 
     async def create_coinbase_payment(
             self,
@@ -17,9 +14,7 @@ class PaymentsAPIClient:
             payment_amount: Decimal,
     ) -> models.CoinbasePaymentCreated:
         url = f'/users/telegram-id/{telegram_id}/payments/coinbase/'
-        async with self._api_client.closing_http_client() as client:
-            response = await client.post(url, json={
-                'payment_amount': str(payment_amount)
-            })
+        request_data = {'payment_amount': str(payment_amount)}
+        response = await self._http_client.post(url, json=request_data)
         response_json = safely_decode_response_json(response)
         return models.CoinbasePaymentCreated.parse_obj(response_json)

@@ -1,19 +1,15 @@
 from core import exceptions
-from core.services import APIClient, safely_decode_response_json
+from core.services import safely_decode_response_json, BaseAPIClient
 from info import models
 
 __all__ = ('ShopInfoAPIClient',)
 
 
-class ShopInfoAPIClient:
-
-    def __init__(self, api_client: APIClient):
-        self._api_client = api_client
+class ShopInfoAPIClient(BaseAPIClient):
 
     async def __get_shop_info(self, key: str) -> models.ShopInfo:
         url = f'/info/{key}/'
-        async with self._api_client.closing_http_client() as client:
-            response = await client.get(url)
+        response = await self._http_client.get(url)
         if response.status_code == 404:
             raise exceptions.ShopInfoNotFoundError(key=key)
         response_json = safely_decode_response_json(response)

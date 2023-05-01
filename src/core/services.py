@@ -1,28 +1,35 @@
 import contextlib
 import json
 import logging
+from abc import ABC
+from typing import NewType
 
 import httpx
 
 from core import exceptions
 
 __all__ = (
-    'APIClient',
+    'HTTPClient',
+    'closing_http_client_factory',
     'safely_decode_response_json',
     'raise_for_error',
     'get_decoded_json_and_check_for_errors',
+    'BaseAPIClient',
 )
 
+HTTPClient = NewType('HTTPClient', httpx.AsyncClient)
 
-class APIClient:
 
-    def __init__(self, base_url: str):
-        self.__base_url = base_url
+@contextlib.asynccontextmanager
+async def closing_http_client_factory(base_url: str) -> HTTPClient:
+    async with httpx.AsyncClient(base_url=base_url) as client:
+        yield HTTPClient(client)
 
-    @contextlib.asynccontextmanager
-    async def closing_http_client(self) -> httpx.AsyncClient:
-        async with httpx.AsyncClient(base_url=self.__base_url) as client:
-            yield client
+
+class BaseAPIClient(ABC):
+
+    def __init__(self, http_client: HTTPClient):
+        self._http_client = http_client
 
 
 status_code_to_errors: dict[int, dict[str, type[exceptions.ServerAPIError]]] = {

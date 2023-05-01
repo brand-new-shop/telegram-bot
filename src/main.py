@@ -1,4 +1,5 @@
 import pathlib
+from functools import partial
 
 from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -10,7 +11,7 @@ import support.handlers
 import users.handlers
 from config import load_config
 from core.middlewares import DependencyInjectMiddleware
-from core.services import APIClient
+from core.services import closing_http_client_factory
 from info.services import ShopInfoAPIClient
 from payments.services import PaymentsAPIClient
 from products.services import ProductsAPIClient
@@ -32,20 +33,11 @@ def main():
     bot = Bot(config.telegram_bot_token, parse_mode=ParseMode.HTML)
     dispatcher = Dispatcher(bot, storage=MemoryStorage())
 
-    api_client = APIClient(config.server_base_url)
-    users_api_client = UsersAPIClient(api_client)
-    support_api_client = SupportAPIClient(api_client)
-    products_api_client = ProductsAPIClient(api_client)
-    shop_info_api_client = ShopInfoAPIClient(api_client)
-    payments_api_client = PaymentsAPIClient(api_client)
-
     dependency_inject_middleware = DependencyInjectMiddleware(
-        server_base_url=config.server_base_url,
-        users_api_client=users_api_client,
-        support_api_client=support_api_client,
-        products_api_client=products_api_client,
-        shop_info_api_client=shop_info_api_client,
-        payments_api_client=payments_api_client,
+        closing_http_client_factory=partial(
+            closing_http_client_factory,
+            base_url=config.server_base_url,
+        ),
     )
 
     dispatcher.setup_middleware(dependency_inject_middleware)
