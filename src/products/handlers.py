@@ -92,13 +92,14 @@ async def show_nested_categories_list(
 
 
 async def on_top_categories_list(
-        message: Message,
+        query: Message | CallbackQuery,
         closing_http_client_factory: HTTPClientFactory,
 ) -> None:
     async with closing_http_client_factory() as http_client:
         products_api_client = ProductsAPIClient(http_client)
         categories = await products_api_client.get_categories()
     view = CategoriesListView(categories)
+    message = query if isinstance(query, Message) else query.message
     await answer_views(message, view)
 
 
@@ -116,6 +117,11 @@ def register_handlers(dispatcher: Dispatcher) -> None:
     dispatcher.register_callback_query_handler(
         show_nested_categories_list,
         CategoryDetailCallbackData().filter(),
+        state='*',
+    )
+    dispatcher.register_callback_query_handler(
+        on_top_categories_list,
+        Text('to-categories'),
         state='*',
     )
     dispatcher.register_message_handler(
