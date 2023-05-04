@@ -8,9 +8,10 @@ packages = [{include = "shop_bot_client"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-aiogram = "^2.23.1"
-httpx = "^0.23.1"
-pydantic = "^1.10.2"
+aiogram = "^2.25.1"
+httpx = "^0.24.0"
+pydantic = "^1.10.7"
+structlog = "^23.1.0"
 
 
 [tool.poetry.group.dev.dependencies]
