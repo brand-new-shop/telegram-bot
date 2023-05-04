@@ -47,7 +47,7 @@ async def on_change_product_quantity(
         products_api_client = ProductsAPIClient(http_client)
         product = await products_api_client.get_product_by_id(product_id)
         cart_product = await cart_api_client.get_cart_product(cart_product_id)
-        cart_product_quantity_change = cart_product.quantity - quantity
+        cart_product_quantity_change = quantity - cart_product.quantity
         if cart_product_quantity_change > product.stocks_count:
             await callback_query.answer('Not enough stocks', show_alert=True)
             return
