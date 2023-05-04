@@ -8,6 +8,7 @@ from aiogram.types import (
     InlineKeyboardMarkup, InlineKeyboardButton
 )
 
+from core.services import HTTPClientFactory
 from core.shortcuts import answer_views, edit_message_by_view
 from users.keyboards import RemoveMessageButton
 from payments.services import PaymentsAPIClient
@@ -22,17 +23,21 @@ __all__ = ('register_handlers',)
 async def on_top_up_via_coinbase(
         callback_query: CallbackQuery,
         state: FSMContext,
-        payments_api_client: PaymentsAPIClient,
+        closing_http_client_factory: HTTPClientFactory,
 ) -> None:
     state_data = await state.get_data()
     await state.finish()
     payment_amount = Decimal(state_data['payment_amount'])
-    coinbase_payment_created = await payments_api_client.create_coinbase_payment(
-        telegram_id=callback_query.from_user.id,
+    async with closing_http_client_factory() as http_client:
+        payments_api_client = PaymentsAPIClient(http_client)
+        coinbase_payment = await payments_api_client.create_coinbase_payment(
+            telegram_id=callback_query.from_user.id,
+            payment_amount=payment_amount,
+        )
+    view = CoinbasePaymentView(
         payment_amount=payment_amount,
+        payment_hosted_url=coinbase_payment.hosted_url,
     )
-    view = CoinbasePaymentView(payment_amount,
-                               coinbase_payment_created.hosted_url)
     await edit_message_by_view(callback_query.message, view)
     await callback_query.answer()
 
@@ -57,8 +62,11 @@ async def on_top_up_balance(callback_query: CallbackQuery) -> None:
 
 
 async def on_user_balance(message: Message,
-                          users_api_client: UsersAPIClient) -> None:
-    user = await users_api_client.get_by_telegram_id(message.from_user.id)
+                          closing_http_client_factory: HTTPClientFactory,
+                          ) -> None:
+    async with closing_http_client_factory() as http_client:
+        users_api_client = UsersAPIClient(http_client)
+        user = await users_api_client.get_by_telegram_id(message.from_user.id)
     view = UserBalanceView(user.balance)
     await answer_views(message, view)
 
@@ -79,5 +87,8 @@ def register_handlers(dispatcher: Dispatcher) -> None:
         Text('top-up'),
         state='*',
     )
-    dispatcher.register_message_handler(on_user_balance, Text('💲 Balance'),
-                                        state='*')
+    dispatcher.register_message_handler(
+        on_user_balance,
+        Text('💲 Balance'),
+        state='*',
+    )
