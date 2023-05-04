@@ -69,8 +69,6 @@ class Product(BaseModel):
     description: str
     price: Decimal
     stocks_count: int
-    content: str
-    type: str
     min_order_quantity: int
     max_order_quantity: int
     max_replacement_time_in_minutes: int
