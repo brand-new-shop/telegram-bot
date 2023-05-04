@@ -1,9 +1,12 @@
+import structlog
 from pydantic import parse_obj_as
 
 from core.services import safely_decode_response_json, BaseAPIClient
 from products import models
 
 __all__ = ('ProductsAPIClient',)
+
+logger = structlog.get_logger('api_calls')
 
 
 class ProductsAPIClient(BaseAPIClient):
@@ -18,14 +21,23 @@ class ProductsAPIClient(BaseAPIClient):
         if parent_id is not None:
             request_query_params['parent_id'] = parent_id
         while True:
+            logger.info(
+                'Request to API: categories list',
+                request_params=request_query_params,
+            )
             response = await self._http_client.get(
                 url=url,
                 params=request_query_params,
+            )
+            logger.info(
+                'Response from API: categories list',
+                response=response,
             )
             response_data = response.json()
             data += response_data['categories']
             if response_data['is_end_of_list_reached']:
                 break
+        logger.info('Response from API: categories list', data=data)
         return parse_obj_as(tuple[models.CategoryPreview, ...], data)
 
     async def get_products_by_category_id(
