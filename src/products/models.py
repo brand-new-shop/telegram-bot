@@ -45,6 +45,10 @@ class ChooseProductCallbackData(TypedDict):
     product_id: int
 
 
+class AddToCartCallbackData(TypedDict):
+    product_id: int
+
+
 class OrderPreview(BaseModel):
     id: int
     product_name: str

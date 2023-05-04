@@ -9,6 +9,7 @@ from products import models
 from products.callback_data import (
     CategoryDetailCallbackData,
     ProductDetailCallbackData,
+    AddToCartCallbackData,
 )
 from users.keyboards import RemoveMessageButton
 
@@ -134,7 +135,9 @@ class ProductDetailView(View):
             ),
             InlineKeyboardButton(
                 text='🛒 Add to Cart',
-                callback_data='dev',
+                callback_data=AddToCartCallbackData().new(
+                    product_id=self._product.id,
+                ),
             )
         )
         return markup
