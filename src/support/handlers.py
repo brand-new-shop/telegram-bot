@@ -15,6 +15,7 @@ from aiogram.types import (
 
 from core import exceptions
 from core.filters import MessageLengthFilter
+from core.services import HTTPClientFactory
 from core.shortcuts import answer_views, edit_message_by_view
 from info.models import ShopInfo
 from info.services import ShopInfoAPIClient
@@ -34,10 +35,9 @@ from support.views import (
     ReplyToTicketDetailView,
     AcceptSupportRulesView,
 )
+from users.keyboards import MenuMarkup
 
 __all__ = ('register_handlers',)
-
-from users.keyboards import MenuMarkup
 
 
 async def on_support_tickets_not_found_error(
@@ -75,33 +75,37 @@ async def on_support_ticket_subject_length_too_long(message: Message) -> None:
 
 async def on_close_ticket(
         callback_query: CallbackQuery,
-        support_api_client: SupportAPIClient,
-        callback_data: SupportTicketDetailCallbackData,
+        closing_http_client_factory: HTTPClientFactory,
+        callback_data: support_models.SupportTicketDetailCallbackData,
 ) -> None:
     ticket_id = callback_data['ticket_id']
-    is_closed = await support_api_client.close_ticket_by_id(ticket_id)
-    if not is_closed:
-        await callback_query.answer('Unable to close the ticket',
-                                    show_alert=True)
-        return
-    support_ticket, ticket_reply_ids, _ = await asyncio.gather(
-        support_api_client.get_ticket_by_id(ticket_id),
-        support_api_client.get_ticket_reply_ids(callback_data['ticket_id']),
-        callback_query.answer('You have closed the ticket', show_alert=True),
-    )
+    async with closing_http_client_factory() as http_client:
+        support_api_client = SupportAPIClient(http_client)
+        is_closed = await support_api_client.close_ticket_by_id(ticket_id)
+        if not is_closed:
+            await callback_query.answer('Unable to close the ticket',
+                                        show_alert=True)
+            return
+        support_ticket, ticket_reply_ids, _ = await asyncio.gather(
+            support_api_client.get_ticket_by_id(ticket_id),
+            support_api_client.get_ticket_reply_ids(callback_data['ticket_id']),
+            callback_query.answer('You have closed the ticket', show_alert=True),
+        )
     view = SupportTicketDetailView(support_ticket, ticket_reply_ids)
     await edit_message_by_view(callback_query.message, view)
 
 
 async def on_create_reply_to_ticket_issue_input(
         message: Message,
-        support_api_client: SupportAPIClient,
+        closing_http_client_factory: HTTPClientFactory,
         state: FSMContext,
 ) -> None:
     state_data = await state.get_data()
     await state.finish()
     ticket_id = state_data['ticket_id']
-    await support_api_client.create_reply_to_ticket(ticket_id, message.text)
+    async with closing_http_client_factory() as http_client:
+        support_api_client = SupportAPIClient(http_client)
+        await support_api_client.create_reply_to_ticket(ticket_id, message.text)
     await message.answer('Your reply added to this active request')
 
 
@@ -119,12 +123,15 @@ async def on_create_reply_to_ticket(
 
 async def on_ticket_reply_detail(
         callback_query: CallbackQuery,
-        support_api_client: SupportAPIClient,
-        callback_data: ReplyToTicketDetailCallbackData,
+        closing_http_client_factory: HTTPClientFactory,
+        callback_data: support_models.ReplyToTicketDetailCallbackData,
 ) -> None:
     ticket_reply_id = callback_data['ticket_reply_id']
-    reply_to_ticket = await support_api_client.get_reply_to_ticket(
-        ticket_reply_id)
+    async with closing_http_client_factory() as http_client:
+        support_api_client = SupportAPIClient(http_client)
+        reply_to_ticket = await support_api_client.get_reply_to_ticket(
+            ticket_reply_id=ticket_reply_id,
+        )
     view = ReplyToTicketDetailView(reply_to_ticket)
     await answer_views(callback_query.message, view)
     await callback_query.answer()
@@ -132,22 +139,31 @@ async def on_ticket_reply_detail(
 
 async def on_support_ticket_detail(
         callback_query: CallbackQuery,
-        support_api_client: SupportAPIClient,
-        callback_data: SupportTicketDetailCallbackData,
+        closing_http_client_factory: HTTPClientFactory,
+        callback_data: support_models.SupportTicketDetailCallbackData,
 ) -> None:
-    support_ticket, ticket_reply_ids = await asyncio.gather(
-        support_api_client.get_ticket_by_id(callback_data['ticket_id']),
-        support_api_client.get_ticket_reply_ids(callback_data['ticket_id']),
-    )
+    async with closing_http_client_factory() as http_client:
+        support_api_client = SupportAPIClient(http_client)
+        support_ticket = await support_api_client.get_ticket_by_id(
+            ticket_id=callback_data['ticket_id'],
+        )
+        ticket_reply_ids = await support_api_client.get_ticket_reply_ids(
+            ticket_id=callback_data['ticket_id'],
+        )
     view = SupportTicketDetailView(support_ticket, ticket_reply_ids)
     await edit_message_by_view(callback_query.message, view)
     await callback_query.answer()
 
 
-async def on_my_support_requests_list(message: Message,
-                                      support_api_client: SupportAPIClient):
-    support_requests = await support_api_client.get_user_tickets(
-        message.from_user.id)
+async def on_my_support_requests_list(
+        message: Message,
+        closing_http_client_factory: HTTPClientFactory,
+):
+    async with closing_http_client_factory() as http_client:
+        support_api_client = SupportAPIClient(http_client)
+        support_requests = await support_api_client.get_user_tickets(
+            telegram_id=message.from_user.id,
+        )
     view = SupportTicketsListView(support_requests)
     await answer_views(message, view)
 
@@ -155,7 +171,7 @@ async def on_my_support_requests_list(message: Message,
 async def on_support_ticket_issue_input(
         message: Message,
         state: FSMContext,
-        support_api_client: SupportAPIClient,
+        closing_http_client_factory: HTTPClientFactory,
 ) -> None:
     state_data = await state.get_data()
     ticket_create = support_models.SupportTicketCreate(
@@ -164,10 +180,13 @@ async def on_support_ticket_issue_input(
         user_telegram_id=message.from_user.id,
     )
     await state.finish()
-    created_support_ticket = await support_api_client.create_ticket(
-        ticket_create)
-    await answer_views(message,
-                       SupportTicketCreatedView(created_support_ticket.id))
+    async with closing_http_client_factory() as http_client:
+        support_api_client = SupportAPIClient(http_client)
+        created_support_ticket = await support_api_client.create_ticket(
+            support_ticket_create=ticket_create,
+        )
+    view = SupportTicketCreatedView(created_support_ticket.id)
+    await answer_views(message, view)
 
 
 async def on_support_ticket_subject_input(message: Message,
@@ -184,12 +203,14 @@ async def on_support_ticket_subject_input(message: Message,
 
 async def on_new_support_request(
         message: Message,
-        shop_info_api_client: ShopInfoAPIClient,
+        closing_http_client_factory: HTTPClientFactory,
 ) -> None:
-    try:
-        support_rules = await shop_info_api_client.get_support_rules_info()
-    except exceptions.ShopInfoNotFoundError:
-        support_rules = ShopInfo(key='support_rules', value='support_rules')
+    async with closing_http_client_factory() as http_client:
+        shop_info_api_client = ShopInfoAPIClient(http_client)
+        try:
+            support_rules = await shop_info_api_client.get_support_rules_info()
+        except exceptions.ShopInfoNotFoundError:
+            support_rules = ShopInfo(key='support_rules', value='support_rules')
     view = AcceptSupportRulesView(support_rules)
     await answer_views(message, view)
 
