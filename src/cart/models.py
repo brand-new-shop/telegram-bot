@@ -1,33 +1,39 @@
 from decimal import Decimal
 from typing import TypedDict
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 __all__ = (
     'CartProduct',
-    'HasProductIdAndQuantityTypedDict',
+    'ChangeProductQuantityInCartTypedDict',
     'HasProductQuantityTypedDict',
+    'HasCartProductIdTypedDict',
     'HasProductIdTypedDict',
 )
 
 
-class HasProductIdTypedDict(TypedDict):
-    product_id: int
+class HasCartProductIdTypedDict(TypedDict):
+    cart_product_id: int
 
 
 class HasProductQuantityTypedDict(TypedDict):
     quantity: int
 
 
-class HasProductIdAndQuantityTypedDict(
-    HasProductIdTypedDict,
+class HasProductIdTypedDict(TypedDict):
+    product_id: int
+
+
+class ChangeProductQuantityInCartTypedDict(
+    HasCartProductIdTypedDict,
     HasProductQuantityTypedDict,
+    HasProductIdTypedDict,
 ):
     pass
 
 
 class CartProduct(BaseModel):
-    cart_product_id: int
+    id: int = Field(alias='cart_product_id')
     product_id: int
     product_name: str
     product_price: Decimal

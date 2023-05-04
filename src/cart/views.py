@@ -36,6 +36,7 @@ class CartView(View):
                 InlineKeyboardButton(
                     text='+',
                     callback_data=ChangeProductQuantityInCartCallbackData().new(
+                        cart_product_id=cart_product.id,
                         product_id=cart_product.product_id,
                         quantity=cart_product.quantity + 1,
                     ),
@@ -47,6 +48,7 @@ class CartView(View):
                 InlineKeyboardButton(
                     text='-',
                     callback_data=ChangeProductQuantityInCartCallbackData().new(
+                        cart_product_id=cart_product.id,
                         product_id=cart_product.product_id,
                         quantity=cart_product.quantity - 1,
                     ),
