@@ -11,6 +11,28 @@ from core.shortcuts import answer_views, edit_message_by_view
 from products.services import ProductsAPIClient
 
 
+async def on_empty_cart(
+        callback_query: CallbackQuery,
+        closing_http_client_factory: HTTPClientFactory,
+) -> None:
+    async with closing_http_client_factory() as http_client:
+        cart_api_client = CartAPIClient(http_client)
+        cart_products = await cart_api_client.get_cart_products(
+            telegram_id=callback_query.from_user.id,
+        )
+        for cart_product in cart_products:
+            await cart_api_client.delete_cart_product(cart_product.id)
+        await callback_query.answer(
+            'All items in your cart have been removed',
+            show_alert=True,
+        )
+        cart_products = await cart_api_client.get_cart_products(
+            telegram_id=callback_query.from_user.id,
+        )
+    view = CartView(cart_products)
+    await edit_message_by_view(callback_query.message, view)
+
+
 async def on_change_product_quantity(
         callback_query: CallbackQuery,
         callback_data: models.ChangeProductQuantityInCartTypedDict,
@@ -59,6 +81,11 @@ async def on_show_cart(
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
+    dispatcher.register_callback_query_handler(
+        on_empty_cart,
+        Text('empty-cart'),
+        state='*',
+    )
     dispatcher.register_callback_query_handler(
         on_change_product_quantity,
         ChangeProductQuantityInCartCallbackData().filter(),

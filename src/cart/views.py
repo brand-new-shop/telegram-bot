@@ -5,6 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from cart import models
 from cart.callback_data import ChangeProductQuantityInCartCallbackData
 from core.views import View
+from products.callback_data import ProductDetailCallbackData
 
 __all__ = (
     'CartView',
@@ -31,7 +32,9 @@ class CartView(View):
             markup.row(
                 InlineKeyboardButton(
                     text=cart_product.product_name,
-                    callback_data='g',
+                    callback_data=ProductDetailCallbackData().new(
+                        product_id=cart_product.product_id,
+                    ),
                 ),
                 InlineKeyboardButton(
                     text='+',
@@ -70,10 +73,11 @@ class CartView(View):
                 callback_data='payment-methods',
             ),
         )
-        markup.row(
-            InlineKeyboardButton(
-                text='🧹 Empty Cart',
-                callback_data='empty-cart',
-            ),
-        )
+        if self.__cart_products:
+            markup.row(
+                InlineKeyboardButton(
+                    text='🧹 Empty Cart',
+                    callback_data='empty-cart',
+                ),
+            )
         return markup
