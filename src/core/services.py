@@ -2,7 +2,7 @@ import contextlib
 import json
 import logging
 from abc import ABC
-from typing import NewType
+from typing import NewType, Callable
 
 import httpx
 
@@ -10,6 +10,7 @@ from core import exceptions
 
 __all__ = (
     'HTTPClient',
+    'HTTPClientFactory',
     'closing_http_client_factory',
     'safely_decode_response_json',
     'raise_for_error',
@@ -18,6 +19,7 @@ __all__ = (
 )
 
 HTTPClient = NewType('HTTPClient', httpx.AsyncClient)
+HTTPClientFactory = Callable[[], HTTPClient]
 
 
 @contextlib.asynccontextmanager
