@@ -44,6 +44,7 @@ class CartAPIClient(BaseAPIClient):
     async def get_cart_product(self, cart_product_id: int):
         url = f'/carts/{cart_product_id}/'
         response = await self._http_client.get(url)
+        return models.CartProduct.parse_obj(response.json())
 
     async def get_cart_products(
             self,
