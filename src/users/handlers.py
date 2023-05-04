@@ -73,13 +73,19 @@ async def on_faq(
             await answer_views(message, ShopInfoView(faq))
 
 
-async def on_accept_rules(message: Message,
-                          users_api_client: UsersAPIClient) -> None:
-    try:
-        await users_api_client.create(message.from_user.id,
-                                      message.from_user.username)
-    except exceptions.ServerAPIError:
-        return
+async def on_accept_rules(
+        message: Message,
+        closing_http_client_factory: HTTPClientFactory,
+) -> None:
+    async with closing_http_client_factory() as http_client:
+        users_api_client = UsersAPIClient(http_client)
+        try:
+            await users_api_client.create(
+                telegram_id=message.from_user.id,
+                username=message.from_user.username
+            )
+        except exceptions.ServerAPIError:
+            return
     await answer_views(message, MenuView())
 
 
@@ -90,6 +96,7 @@ async def on_start(
 ) -> None:
     async with closing_http_client_factory() as http_client:
         users_api_client = UsersAPIClient(http_client)
+        shop_info_api_client = ShopInfoAPIClient(http_client)
         try:
             await users_api_client.get_by_telegram_id(message.from_user.id)
         except exceptions.UserNotFoundError:
@@ -97,23 +104,43 @@ async def on_start(
                 resize_keyboard=True,
                 keyboard=[[KeyboardButton('✅ Accept')]],
             )
-            await message.answer('Rules', reply_markup=markup)
-            await answer_views(message, AcceptRulesView())
+            try:
+                shop_info = await shop_info_api_client.get_rules_info()
+            except exceptions.ShopInfoNotFoundError:
+                await message.answer('Rules', reply_markup=markup)
+            else:
+                await answer_views(message, AcceptRulesView(shop_info))
             return
     await state.finish()
     await answer_views(message, MenuView())
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
-    dispatcher.register_message_handler(on_profile, Text('📱 Profile'),
-                                        state='*')
-    dispatcher.register_message_handler(on_start, CommandStart(), state='*')
-    dispatcher.register_message_handler(on_start, Text('⬅️ Back'), state='*')
-    dispatcher.register_message_handler(on_accept_rules, Text('✅ Accept'),
-                                        state='*')
-    dispatcher.register_message_handler(on_faq, Text('ℹ️ FAQ'), state='*')
-    dispatcher.register_message_handler(on_rules, Text('📗 Rules'), state='*')
-
+    dispatcher.register_message_handler(
+        on_profile,
+        Text('📱 Profile'),
+        state='*',
+    )
+    dispatcher.register_message_handler(
+        on_start,
+        CommandStart() | Text('⬅️ Back'),
+        state='*',
+    )
+    dispatcher.register_message_handler(
+        on_accept_rules,
+        Text('✅ Accept'),
+        state='*',
+    )
+    dispatcher.register_message_handler(
+        on_faq,
+        Text('ℹ️ FAQ'),
+        state='*',
+    )
+    dispatcher.register_message_handler(
+        on_rules,
+        Text('📗 Rules'),
+        state='*',
+    )
     dispatcher.register_callback_query_handler(
         on_remove_message,
         Text('remove-message'),

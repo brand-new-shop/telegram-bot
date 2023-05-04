@@ -7,6 +7,7 @@ from aiogram.types import (
 )
 
 from core.views import View
+from info.views import ShopInfoView
 from users.models import UserProfileDTO
 from users.keyboards import MenuMarkup
 
@@ -18,8 +19,7 @@ class MenuView(View):
     reply_markup = MenuMarkup()
 
 
-class AcceptRulesView(View):
-    text = 'Rules'
+class AcceptRulesView(ShopInfoView):
     reply_markup = ReplyKeyboardMarkup(
         resize_keyboard=True,
         keyboard=[[KeyboardButton('✅ Accept')]],
@@ -41,13 +41,9 @@ class UserBalanceView(View):
         markup = InlineKeyboardMarkup()
         markup.row(
             InlineKeyboardButton(
-                text='🛍 Buy Now',
-                callback_data='dev',
+                text='Top-up',
+                callback_data='top-up',
             ),
-            InlineKeyboardButton(
-                text='Add to Cart',
-                callback_data='dev',
-            )
         )
         return markup
 

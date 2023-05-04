@@ -45,6 +45,10 @@ class ChooseProductCallbackData(TypedDict):
     product_id: int
 
 
+class AddToCartCallbackData(TypedDict):
+    product_id: int
+
+
 class OrderPreview(BaseModel):
     id: int
     product_name: str
@@ -69,8 +73,6 @@ class Product(BaseModel):
     description: str
     price: Decimal
     stocks_count: int
-    content: str
-    type: str
     min_order_quantity: int
     max_order_quantity: int
     max_replacement_time_in_minutes: int

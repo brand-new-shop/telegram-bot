@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher, executor
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import ParseMode
 
+import cart.handlers
 import payments.handlers
 import products.handlers
 import support.handlers
@@ -15,6 +16,7 @@ from core.services import closing_http_client_factory
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
+    cart.handlers.register_handlers(dispatcher)
     payments.handlers.register_handlers(dispatcher)
     products.handlers.register_handlers(dispatcher)
     support.handlers.register_handlers(dispatcher)
