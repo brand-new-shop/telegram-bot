@@ -15,7 +15,7 @@ from products.services import ProductsAPIClient
 from products.views import (
     CategoriesListView,
     ProductDetailView,
-    ProductDetailWithPhotoView,
+    ProductDetailPhotosView,
 )
 
 logger = structlog.get_logger('telegram_bot')
@@ -30,20 +30,11 @@ async def on_product_menu(
     async with closing_http_client_factory() as http_client:
         products_api_client = ProductsAPIClient(http_client)
         product = await products_api_client.get_product_by_id(product_id)
+    views = []
     if product.picture_urls:
-        view = ProductDetailWithPhotoView(product)
-        try:
-            await answer_views(callback_query.message, view)
-        except BadRequest:
-            logger.error(
-                'Could not send product photos',
-                picture_urls=product.picture_urls,
-            )
-        else:
-            await callback_query.message.delete()
-    else:
-        view = ProductDetailView(product)
-        await edit_message_by_view(callback_query.message, view)
+        views.append(ProductDetailPhotosView(product))
+    views.append(ProductDetailView(product))
+    await answer_views(callback_query.message, *views)
     await callback_query.answer()
 
 
