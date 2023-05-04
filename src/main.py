@@ -9,14 +9,9 @@ import payments.handlers
 import products.handlers
 import support.handlers
 import users.handlers
-from config import load_config
+from config import load_config, setup_logging
 from core.middlewares import DependencyInjectMiddleware
 from core.services import closing_http_client_factory
-from info.services import ShopInfoAPIClient
-from payments.services import PaymentsAPIClient
-from products.services import ProductsAPIClient
-from support.services import SupportAPIClient
-from users.services import UsersAPIClient
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
@@ -29,6 +24,8 @@ def register_handlers(dispatcher: Dispatcher) -> None:
 def main():
     config_file_path = pathlib.Path(__file__).parent.parent / 'config.toml'
     config = load_config(config_file_path)
+
+    setup_logging()
 
     bot = Bot(config.telegram_bot_token, parse_mode=ParseMode.HTML)
     dispatcher = Dispatcher(bot, storage=MemoryStorage())
