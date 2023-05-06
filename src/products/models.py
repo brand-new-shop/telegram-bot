@@ -14,6 +14,8 @@ __all__ = (
     'OrderPreview',
     'OrdersStatistics',
     'Product',
+    'Order',
+    'OrderProduct',
 )
 
 
@@ -54,6 +56,20 @@ class OrderPreview(BaseModel):
     product_name: str
     quantity: int
     total_price: Decimal
+
+
+class OrderProduct(BaseModel):
+    id: int
+    name: str
+    quantity: int
+    product_price_at_the_moment: Decimal
+
+
+class Order(BaseModel):
+    id: int
+    payment_type: str
+    created_at: datetime.datetime
+    products: list[OrderProduct]
 
 
 class OrdersTotalCount(BaseModel):
