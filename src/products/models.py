@@ -91,3 +91,4 @@ class Product(BaseModel):
     can_be_purchased: bool
     category: Category
     picture_urls: tuple[str, ...]
+    is_balance_only: bool
