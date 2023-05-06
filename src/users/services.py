@@ -4,7 +4,7 @@ from structlog.contextvars import bound_contextvars
 
 from core import exceptions
 from core.services import BaseAPIClient, safely_decode_response_json
-from products.models import OrdersTotalCount, Order
+from products.models import Order
 from users.models import User
 
 __all__ = ('UsersAPIClient',)
@@ -66,11 +66,3 @@ class UsersAPIClient(BaseAPIClient):
                 data=response_data,
             )
         return parse_obj_as(tuple[Order, ...], response_data['orders'])
-
-    async def get_user_orders_count(self, telegram_id: int) -> OrdersTotalCount:
-        url = f'/users/telegram-id/{telegram_id}/orders/count/'
-        with bound_contextvars(telegram_id=telegram_id):
-            logger.info('Request t')
-            response = await self._http_client.get(url)
-        response_json = safely_decode_response_json(response)
-        return OrdersTotalCount.parse_obj(response_json)

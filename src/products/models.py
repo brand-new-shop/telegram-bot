@@ -10,7 +10,6 @@ __all__ = (
     'ProductPreview',
     'ChooseCategoryCallbackData',
     'ChooseProductCallbackData',
-    'OrdersTotalCount',
     'OrderPreview',
     'OrdersStatistics',
     'Product',
@@ -70,11 +69,6 @@ class Order(BaseModel):
     payment_type: str
     created_at: datetime.datetime
     products: list[OrderProduct]
-
-
-class OrdersTotalCount(BaseModel):
-    user_telegram_id: int
-    orders_total_count: int
 
 
 class OrdersStatistics(BaseModel):
