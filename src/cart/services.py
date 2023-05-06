@@ -29,7 +29,7 @@ class CartAPIClient(BaseAPIClient):
             if response.status_code == 409:
                 logger.info('Response from API: product already in cart')
                 raise exceptions.ProductAlreadyInCartError
-            logger.info('Response from API: product added to cart',)
+            logger.info('Response from API: product added to cart', )
             response_data = safely_decode_response_json(response)
             logger.info(
                 'Response from API: create cart product',
@@ -72,3 +72,22 @@ class CartAPIClient(BaseAPIClient):
         url = f'/carts/{cart_product_id}/'
         request_body = {'quantity': quantity}
         response = await self._http_client.patch(url, json=request_body)
+
+    async def get_orders_statistics(
+            self,
+            telegram_id: int,
+    ) -> models.OrdersStatistics:
+        url = f'/carts/users/{telegram_id}/orders/statistics/'
+        with bound_contextvars(telegram_id=telegram_id):
+            logger.info('Request to API: orders statistics')
+            response = await self._http_client.get(url)
+            logger.info(
+                'Response from API: orders statistics',
+                response=response,
+            )
+            response_data = response.json()
+            logger.info(
+                'Response from API: orders statistics',
+                data=response_data,
+            )
+        return models.OrdersStatistics.parse_obj(response_data)
