@@ -1,3 +1,4 @@
+from collections.abc import Iterable
 from decimal import Decimal
 
 from aiogram.types import (
@@ -8,7 +9,8 @@ from aiogram.types import (
 
 from core.views import View
 from info.views import ShopInfoView
-from users.models import UserProfileDTO
+from cart.models import OrdersStatistics
+from products.models import OrderProduct, Order
 from users.keyboards import MenuMarkup
 
 __all__ = ('UserBalanceView', 'MenuView', 'ProfileView', 'AcceptRulesView')
@@ -50,24 +52,22 @@ class UserBalanceView(View):
 
 class ProfileView(View):
 
-    def __init__(self, user_profile_dto: UserProfileDTO):
-        self.__user_profile_dto = user_profile_dto
+    def __init__(
+            self,
+            telegram_id: int,
+            username: str,
+            orders_statistics: OrdersStatistics,
+    ):
+        self.__telegram_id = telegram_id
+        self.__username = username
+        self.__statistics = orders_statistics
 
     def get_text(self) -> str:
-        username = (
-            f'@{self.__user_profile_dto.username}' if self.__user_profile_dto.username is not None
-            else self.__user_profile_dto.telegram_id)
+        username = self.__username or self.__telegram_id
         lines = [
             f'🙍‍♂ User: {username}',
             '➖➖➖➖➖➖➖➖➖➖',
-            f'🛒 Number of purchases: {self.__user_profile_dto.purchases_total_count} pc(s).',
-            f'💰 Total Amount: {self.__user_profile_dto.purchases_total_price} $.',
+            f'🛒 Number of purchases: {self.__statistics.total_count} pc(s).',
+            f'💰 Total Amount: {self.__statistics.total_cost} $.',
         ]
-        if self.__user_profile_dto.last_purchases:
-            lines.append('➖➖➖➖➖➖➖➖➖➖')
-            lines.append(
-                f'📱 Last {len(self.__user_profile_dto.last_purchases)} purchases:')
-            for purchase in self.__user_profile_dto.last_purchases:
-                lines.append(
-                    f'▫️ {purchase.product_name} | {purchase.quantity} pc(s) | ${purchase.total_price}')
         return '\n'.join(lines)
