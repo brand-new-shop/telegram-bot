@@ -9,6 +9,7 @@ __all__ = (
     'HasProductQuantityTypedDict',
     'HasCartProductIdTypedDict',
     'HasProductIdTypedDict',
+    'OrdersStatistics',
 )
 
 
@@ -38,3 +39,8 @@ class CartProduct(BaseModel):
     product_name: str
     product_price: Decimal
     quantity: int
+
+
+class OrdersStatistics(BaseModel):
+    total_count: int
+    total_cost: Decimal

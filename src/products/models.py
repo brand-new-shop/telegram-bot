@@ -10,10 +10,11 @@ __all__ = (
     'ProductPreview',
     'ChooseCategoryCallbackData',
     'ChooseProductCallbackData',
-    'OrdersTotalCount',
     'OrderPreview',
     'OrdersStatistics',
     'Product',
+    'Order',
+    'OrderProduct',
 )
 
 
@@ -56,9 +57,18 @@ class OrderPreview(BaseModel):
     total_price: Decimal
 
 
-class OrdersTotalCount(BaseModel):
-    user_telegram_id: int
-    orders_total_count: int
+class OrderProduct(BaseModel):
+    id: int
+    name: str
+    quantity: int
+    product_price_at_the_moment: Decimal
+
+
+class Order(BaseModel):
+    id: int
+    payment_type: str
+    created_at: datetime.datetime
+    products: list[OrderProduct]
 
 
 class OrdersStatistics(BaseModel):
@@ -81,3 +91,4 @@ class Product(BaseModel):
     can_be_purchased: bool
     category: Category
     picture_urls: tuple[str, ...]
+    is_balance_only: bool

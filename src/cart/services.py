@@ -4,6 +4,7 @@ from structlog.contextvars import bound_contextvars
 
 from cart import models, exceptions
 from core.services import BaseAPIClient, safely_decode_response_json
+from products.models import Order
 
 __all__ = ('CartAPIClient',)
 
@@ -29,7 +30,7 @@ class CartAPIClient(BaseAPIClient):
             if response.status_code == 409:
                 logger.info('Response from API: product already in cart')
                 raise exceptions.ProductAlreadyInCartError
-            logger.info('Response from API: product added to cart',)
+            logger.info('Response from API: product added to cart', )
             response_data = safely_decode_response_json(response)
             logger.info(
                 'Response from API: create cart product',
@@ -72,3 +73,40 @@ class CartAPIClient(BaseAPIClient):
         url = f'/carts/{cart_product_id}/'
         request_body = {'quantity': quantity}
         response = await self._http_client.patch(url, json=request_body)
+
+    async def get_orders_statistics(
+            self,
+            telegram_id: int,
+    ) -> models.OrdersStatistics:
+        url = f'/carts/users/{telegram_id}/orders/statistics/'
+        with bound_contextvars(telegram_id=telegram_id):
+            logger.info('Request to API: orders statistics')
+            response = await self._http_client.get(url)
+            logger.info(
+                'Response from API: orders statistics',
+                response=response,
+            )
+            response_data = response.json()
+            logger.info(
+                'Response from API: orders statistics',
+                data=response_data,
+            )
+        return models.OrdersStatistics.parse_obj(response_data)
+
+    async def create_order(
+            self,
+            telegram_id: int,
+            payment_method: str,
+    ) -> Order:
+        url = f'/carts/users/{telegram_id}/orders/'
+        request_data = {'payment_type': payment_method}
+        with bound_contextvars(
+                telegram_id=telegram_id,
+                request_data=request_data,
+        ):
+            logger.info('Request to API: create order')
+            response = await self._http_client.post(url, data=request_data)
+            logger.info('Response from API: create order', response=response)
+            response_data = response.json()
+            logger.info('Response from API: create order', data=response_data)
+        return Order.parse_obj(response_data)

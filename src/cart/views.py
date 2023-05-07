@@ -6,9 +6,11 @@ from cart import models
 from cart.callback_data import ChangeProductQuantityInCartCallbackData
 from core.views import View
 from products.callback_data import ProductDetailCallbackData
+from products.models import Product
 
 __all__ = (
     'CartView',
+    'PaymentMethodsView',
 )
 
 
@@ -70,7 +72,7 @@ class CartView(View):
         markup.row(
             InlineKeyboardButton(
                 text='🛍 Buy Now',
-                callback_data='payment-methods',
+                callback_data='start-order-processing',
             ),
         )
         if self.__cart_products:
@@ -79,5 +81,44 @@ class CartView(View):
                     text='🧹 Empty Cart',
                     callback_data='empty-cart',
                 ),
+            )
+        return markup
+
+
+class PaymentMethodsView(View):
+
+    def __init__(self, balance_only_products: Iterable[Product] | None = None):
+        self.__balance_only_products = tuple(balance_only_products)
+
+    def get_text(self) -> str:
+        if self.__balance_only_products:
+            text = ['Since the following products are <u>balance only</u>,'
+                    ' you can pay for your order only using your balance:']
+            for product in self.__balance_only_products:
+                text.append(f'📍 {product.name}')
+        else:
+            text = ['Select a payment method']
+        return '\n'.join(text)
+
+    def get_reply_markup(self) -> InlineKeyboardMarkup:
+        markup = InlineKeyboardMarkup(row_width=1)
+        if self.__balance_only_products:
+            markup.insert(
+                InlineKeyboardButton(
+                    text='Pay',
+                    callback_data='pay-via-balance',
+                ),
+            )
+        else:
+            markup.add(
+                InlineKeyboardButton(
+                    text='Balance',
+                    callback_data='pay-via-balance',
+                ),
+                InlineKeyboardButton(
+                    text='Coinbase',
+                    callback_data='pay-via-coinbase',
+                ),
+
             )
         return markup

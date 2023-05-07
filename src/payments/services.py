@@ -36,3 +36,22 @@ class PaymentsAPIClient(BaseAPIClient):
                 data=response_json,
             )
         return models.CoinbasePaymentCreated.parse_obj(response_json)
+
+    async def create_coinbase_payment_for_order(
+            self,
+            telegram_id: int,
+    ) -> models.CoinbasePaymentCreated:
+        url = f'/users/telegram-id/{telegram_id}/payments/coinbase/cart/'
+        with bound_contextvars(telegram_id=telegram_id,):
+            logger.info('Request to API: create coinbase payment for order')
+            response = await self._http_client.post(url)
+            logger.info(
+                'Response from API: create coinbase payment for order',
+                response=response,
+            )
+            response_json = safely_decode_response_json(response)
+            logger.info(
+                'Response from API: create coinbase payment for order',
+                data=response_json,
+            )
+        return models.CoinbasePaymentCreated.parse_obj(response_json)
