@@ -120,27 +120,33 @@ class ProductDetailView(View):
             f'📓 Name: {self._product.name}',
             f'📋 Description:\n {self._product.description}',
             f'💳 Price: ${self._product.price}.\n',
-            f'📦 Available to purchase: {self._product.stocks_count} pc(s)\n',
         ]
-        if self._product.stocks_count < 0:
-            lines.append('❗️  The items are temporarily unavailable ❗️')
+        if self._product.are_stocks_displayed:
+            if self._product.stocks_count > 0:
+                lines.append(
+                    '📦 Available to purchase:'
+                    f' {self._product.stocks_count} pc(s)'
+                )
+            else:
+                lines.append('❗️  The items are temporarily unavailable ❗️')
         return '\n'.join(lines)
 
     def get_reply_markup(self) -> InlineKeyboardMarkup:
-        markup = InlineKeyboardMarkup(row_width=1)
-        markup.add(
-            InlineKeyboardButton(
-                text='🛍 Buy Now',
-                callback_data='dev',
-            ),
-            InlineKeyboardButton(
-                text='🛒 Add to Cart',
-                callback_data=AddToCartCallbackData().new(
-                    product_id=self._product.id,
+        if self._product.can_be_purchased and self._product.stocks_count > 0:
+            markup = InlineKeyboardMarkup(row_width=1)
+            markup.add(
+                InlineKeyboardButton(
+                    text='🛍 Buy Now',
+                    callback_data='dev',
                 ),
+                InlineKeyboardButton(
+                    text='🛒 Add to Cart',
+                    callback_data=AddToCartCallbackData().new(
+                        product_id=self._product.id,
+                    ),
+                )
             )
-        )
-        return markup
+            return markup
 
 
 class ProductDetailPhotosView(View):
