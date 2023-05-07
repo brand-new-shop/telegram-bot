@@ -69,13 +69,13 @@ class CartView(View):
                 callback_data='to-categories',
             ),
         )
-        markup.row(
-            InlineKeyboardButton(
-                text='🛍 Buy Now',
-                callback_data='start-order-processing',
-            ),
-        )
         if self.__cart_products:
+            markup.row(
+                InlineKeyboardButton(
+                    text='🛍 Buy Now',
+                    callback_data='start-order-processing',
+                ),
+            )
             markup.row(
                 InlineKeyboardButton(
                     text='🧹 Empty Cart',
