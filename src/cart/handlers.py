@@ -8,8 +8,23 @@ from cart import models
 from cart.callback_data import ChangeProductQuantityInCartCallbackData
 from core.services import HTTPClientFactory
 from core.shortcuts import answer_views, edit_message_by_view
+from payments.services import PaymentsAPIClient
+from payments.views import CoinbasePaymentView
 from products.services import ProductsAPIClient
 from users.services import UsersAPIClient
+
+
+async def on_select_coinbase_as_payment_method(
+        callback_query: CallbackQuery,
+        closing_http_client_factory: HTTPClientFactory,
+) -> None:
+    async with closing_http_client_factory() as http_client:
+        payments_api_client = PaymentsAPIClient(http_client)
+        payment = await payments_api_client.create_coinbase_payment_for_order(
+            telegram_id=callback_query.from_user.id,
+        )
+    view = CoinbasePaymentView(payment.amount, payment.hosted_url)
+    await edit_message_by_view(callback_query.message, view)
 
 
 async def on_select_balance_as_payment_method(
@@ -149,6 +164,11 @@ async def on_show_cart(
 
 
 def register_handlers(dispatcher: Dispatcher) -> None:
+    dispatcher.register_callback_query_handler(
+        on_select_coinbase_as_payment_method,
+        Text('pay-via-coinbase'),
+        state='*',
+    )
     dispatcher.register_callback_query_handler(
         on_select_balance_as_payment_method,
         Text('pay-via-balance'),
